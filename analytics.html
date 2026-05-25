@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A.G.R Automation — Analytics</title>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --surface2: #273549; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #3b82f6; --accent-hover: #2563eb;
+    --green: #22c55e; --yellow: #eab308; --red: #ef4444; --orange: #f97316; --purple: #a855f7;
+    --radius: 10px; --sidebar-w: 220px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+  .sidebar { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transition: transform .25s; }
+  .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo .brand { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
+  .sidebar-logo .tagline { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; padding: 14px 10px 6px; }
+  .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: all .15s; margin-bottom: 2px; }
+  .nav-link:hover { background: var(--surface2); color: var(--text); }
+  .nav-link.active { background: var(--accent); color: #fff; }
+  .sidebar-footer { padding: 14px 8px; border-top: 1px solid var(--border); }
+  .user-pill { display: flex; align-items: center; gap: 10px; padding: 9px 10px; }
+  .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; color: var(--muted); }
+  .logout-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 6px; border-radius: 6px; transition: all .15s; }
+  .logout-btn:hover { color: var(--red); }
+
+  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; border-radius: 6px; }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .content { padding: 24px; flex: 1; }
+
+  /* Summary cards */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; align-items: center; gap: 16px; }
+  .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .stat-info .label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .stat-info .value { font-size: 24px; font-weight: 700; margin-top: 2px; }
+  .stat-info .sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* Tier cards */
+  .tier-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .tier-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; text-align: center; }
+  .tier-name { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 8px; }
+  .tier-count { font-size: 28px; font-weight: 800; }
+  .tier-range { font-size: 10px; color: var(--muted); margin-top: 4px; }
+  .tier-bronze { border-top: 3px solid #cd7f32; }
+  .tier-silver { border-top: 3px solid #94a3b8; }
+  .tier-gold { border-top: 3px solid #eab308; }
+  .tier-platinum { border-top: 3px solid #c084fc; }
+  .tier-bronze .tier-name { color: #cd7f32; }
+  .tier-silver .tier-name { color: #94a3b8; }
+  .tier-gold .tier-name { color: #eab308; }
+  .tier-platinum .tier-name { color: #c084fc; }
+
+  /* Section title */
+  .section-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+
+  /* Card & table */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  /* Tier badge */
+  .tier-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .tier-badge-bronze { background: rgba(205,127,50,.12); color: #cd7f32; }
+  .tier-badge-silver { background: rgba(148,163,184,.12); color: #94a3b8; }
+  .tier-badge-gold { background: rgba(234,179,8,.12); color: #eab308; }
+  .tier-badge-platinum { background: rgba(192,132,252,.12); color: #c084fc; }
+
+  /* Progress bar */
+  .bar-wrap { background: var(--surface2); border-radius: 4px; height: 6px; min-width: 80px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width .5s; }
+
+  /* Search */
+  .search-wrap { position: relative; }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .search-input { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 7px 12px 7px 32px; font-size: 12px; outline: none; transition: border-color .15s; width: 200px; }
+  .search-input::placeholder { color: var(--muted); }
+  .search-input:focus { border-color: var(--accent); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 8px; padding: 4px; margin-bottom: 20px; width: fit-content; }
+  .tab { padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; transition: all .15s; border: none; background: none; }
+  .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,.3); }
+
+  /* Loading / empty */
+  .loading { padding: 48px; text-align: center; color: var(--muted); font-size: 13px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty { padding: 40px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; }
+  .overlay.open { display: block; }
+
+  @media (max-width: 1024px) { .tier-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,.5); }
+    .main { margin-left: 0; }
+    .menu-toggle { display: block; }
+    .topbar { padding: 12px 16px; }
+    .content { padding: 16px; }
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .tier-grid { grid-template-columns: 1fr 1fr; }
+    .search-input { width: 140px; }
+  }
+  @media (max-width: 420px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .tier-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">A.G.R Automation</div>
+    <div class="tagline">BOQ Management System</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a href="dashboard.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a href="quotes.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Quotes
+    </a>
+    <a href="clients.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clients
+    </a>
+    <div class="nav-section">Work</div>
+    <a href="projects.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Projects
+    </a>
+    <a href="analytics.html" class="nav-link active">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+    <div class="nav-section" id="admin-section" style="display:none">Admin</div>
+    <a href="users.html" class="nav-link" id="users-link" style="display:none">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Users
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar" id="avatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name">Loading…</div>
+        <div class="user-role" id="user-role"></div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Logout">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+
+<div class="main">
+  <header class="topbar">
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span class="topbar-title">Analytics</span>
+  </header>
+
+  <div class="content">
+    <!-- Summary Stats -->
+    <div class="stats-grid" id="summary-stats">
+      <div class="loading"><span class="spinner"></span>Loading analytics…</div>
+    </div>
+
+    <!-- Tier Distribution -->
+    <div class="tier-grid" id="tier-grid">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- Tabs: Customers | Products -->
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('customers', this)">Customers</button>
+      <button class="tab" onclick="showTab('products', this)">Product Trends</button>
+    </div>
+
+    <!-- Customers Tab -->
+    <div id="tab-customers">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Customer Analytics</span>
+          <div class="search-wrap">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="cust-search" placeholder="Search clients…" oninput="filterCustomers()">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Tier</th>
+                <th>Total Spent</th>
+                <th>Quotes</th>
+                <th>Top Product</th>
+                <th>Last Quote</th>
+              </tr>
+            </thead>
+            <tbody id="customers-tbody">
+              <tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Tab -->
+    <div id="tab-products" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Product Trends</span>
+          <div class="search-wrap">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="prod-search" placeholder="Search products…" oninput="filterProducts()">
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Orders</th>
+                <th>Total Qty</th>
+                <th>Total Value</th>
+                <th>Unique Customers</th>
+                <th>Popularity</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody">
+              <tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://agr-boq-backend.agrayush98.workers.dev';
+let allCustomers = [];
+let allProducts = [];
+
+function getSession() { return localStorage.getItem('sessionId'); }
+function getUser() { try { return JSON.parse(localStorage.getItem('agr_user') || 'null'); } catch { return null; } }
+
+async function logout() {
+  await fetch(`${API}/api/auth/logout`, { method: 'POST', headers: { 'X-Session-ID': getSession() } }).catch(() => {});
+  localStorage.clear();
+  location.href = 'login.html';
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mob-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mob-overlay').classList.remove('open');
+}
+
+function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }) : '—'; }
+
+function tierBadge(tier) {
+  const map = { bronze: 'tier-badge-bronze', silver: 'tier-badge-silver', gold: 'tier-badge-gold', platinum: 'tier-badge-platinum' };
+  const icons = { bronze: '🥉', silver: '🥈', gold: '🥇', platinum: '💎' };
+  return `<span class="tier-badge ${map[tier] || 'tier-badge-bronze'}">${icons[tier] || ''} ${tier}</span>`;
+}
+
+function showTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-customers').style.display = name === 'customers' ? '' : 'none';
+  document.getElementById('tab-products').style.display = name === 'products' ? '' : 'none';
+}
+
+function filterCustomers() {
+  const q = document.getElementById('cust-search').value.toLowerCase();
+  const filtered = allCustomers.filter(c => !q || c.name.toLowerCase().includes(q) || (c.city || '').toLowerCase().includes(q));
+  renderCustomers(filtered);
+}
+
+function renderCustomers(customers) {
+  const tbody = document.getElementById('customers-tbody');
+  if (!customers.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">No customer data yet</td></tr>';
+    return;
+  }
+  tbody.innerHTML = customers.map(c => {
+    const top = c.topProducts && c.topProducts[0];
+    return `<tr>
+      <td>
+        <div style="font-weight:600">${c.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${[c.city, c.state].filter(Boolean).join(', ') || '—'}</div>
+      </td>
+      <td>${tierBadge(c.tier)}</td>
+      <td style="font-weight:600">${fmt(c.totalSpent)}</td>
+      <td style="color:var(--muted)">${c.totalQuotes}</td>
+      <td style="font-size:12px">${top ? `<div>${top.productName}</div><div style="color:var(--muted)">${top.orderCount}x · ${fmt(top.totalValue)}</div>` : '—'}</td>
+      <td style="color:var(--muted)">${fmtDate(c.lastQuoteDate)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function filterProducts() {
+  const q = document.getElementById('prod-search').value.toLowerCase();
+  const filtered = allProducts.filter(p => !q || p.productName.toLowerCase().includes(q));
+  renderProducts(filtered);
+}
+
+function renderProducts(products) {
+  const tbody = document.getElementById('products-tbody');
+  if (!products.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">No product data yet — save some quotes to track preferences</td></tr>';
+    return;
+  }
+  const maxOrders = products[0]?.orderCount || 1;
+  tbody.innerHTML = products.map(p => {
+    const pct = Math.round((p.orderCount / maxOrders) * 100);
+    return `<tr>
+      <td style="font-weight:500;max-width:220px">${p.productName}</td>
+      <td style="font-weight:700">${p.orderCount}</td>
+      <td style="color:var(--muted)">${Number(p.totalQuantity || 0).toLocaleString('en-IN')}</td>
+      <td style="font-weight:600">${fmt(p.totalValue)}</td>
+      <td style="color:var(--muted)">${p.uniqueCustomers}</td>
+      <td style="min-width:100px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="bar-wrap" style="flex:1">
+            <div class="bar-fill" style="width:${pct}%;background:var(--accent)"></div>
+          </div>
+          <span style="font-size:11px;color:var(--muted);width:28px;text-align:right">${pct}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSummary(customers) {
+  const total = customers.length;
+  const totalRevenue = customers.reduce((s, c) => s + c.totalSpent, 0);
+  const avg = total ? totalRevenue / total : 0;
+  const platinum = customers.filter(c => c.tier === 'platinum').length;
+
+  document.getElementById('summary-stats').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(59,130,246,.15)">
+        <svg width="20" height="20" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="stat-info"><div class="label">Total Customers</div><div class="value">${total}</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(34,197,94,.15)">
+        <svg width="20" height="20" fill="none" stroke="#4ade80" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="stat-info"><div class="label">Total Revenue</div><div class="value" style="font-size:18px">${fmt(totalRevenue)}</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(234,179,8,.15)">
+        <svg width="20" height="20" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      </div>
+      <div class="stat-info"><div class="label">Avg per Customer</div><div class="value" style="font-size:18px">${fmt(avg)}</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon" style="background:rgba(192,132,252,.15)">
+        <svg width="20" height="20" fill="none" stroke="#c084fc" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </div>
+      <div class="stat-info"><div class="label">Platinum Clients</div><div class="value">${platinum}</div><div class="sub">> ₹20L revenue</div></div>
+    </div>
+  `;
+
+  const tiers = { bronze: 0, silver: 0, gold: 0, platinum: 0 };
+  customers.forEach(c => { if (tiers[c.tier] !== undefined) tiers[c.tier]++; });
+  document.getElementById('tier-grid').innerHTML = `
+    <div class="tier-card tier-bronze">
+      <div class="tier-name">Bronze</div>
+      <div class="tier-count">${tiers.bronze}</div>
+      <div class="tier-range">< ₹1L</div>
+    </div>
+    <div class="tier-card tier-silver">
+      <div class="tier-name">Silver</div>
+      <div class="tier-count">${tiers.silver}</div>
+      <div class="tier-range">₹1L – ₹5L</div>
+    </div>
+    <div class="tier-card tier-gold">
+      <div class="tier-name">Gold</div>
+      <div class="tier-count">${tiers.gold}</div>
+      <div class="tier-range">₹5L – ₹20L</div>
+    </div>
+    <div class="tier-card tier-platinum">
+      <div class="tier-name">Platinum</div>
+      <div class="tier-count">${tiers.platinum}</div>
+      <div class="tier-range">> ₹20L</div>
+    </div>
+  `;
+}
+
+async function init() {
+  if (!getSession()) { location.href = 'login.html'; return; }
+  const user = getUser();
+  if (user) {
+    document.getElementById('user-name').textContent = user.fullName || user.username;
+    document.getElementById('user-role').textContent = user.role;
+    document.getElementById('avatar').textContent = (user.fullName || user.username || '?')[0].toUpperCase();
+    if (user.role === 'admin') {
+      document.getElementById('admin-section').style.display = '';
+      document.getElementById('users-link').style.display = '';
+    }
+  }
+
+  const [custRes, prodRes] = await Promise.all([
+    fetch(`${API}/api/analytics/customers`, { headers: { 'X-Session-ID': getSession() } }),
+    fetch(`${API}/api/analytics/products`, { headers: { 'X-Session-ID': getSession() } })
+  ]);
+
+  const custData = await custRes.json();
+  const prodData = await prodRes.json();
+
+  allCustomers = custData.customers || [];
+  allProducts = prodData.products || [];
+
+  renderSummary(allCustomers);
+  renderCustomers(allCustomers);
+  renderProducts(allProducts);
+}
+
+init();
+</script>
+</body>
+</html>

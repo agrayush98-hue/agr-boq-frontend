@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A.G.R Automation — Project Detail</title>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --surface2: #273549; --border: #334155;
+    --text: #e2e8f0; --muted: #94a3b8; --accent: #3b82f6; --accent-hover: #2563eb;
+    --green: #22c55e; --yellow: #eab308; --red: #ef4444;
+    --radius: 10px; --sidebar-w: 220px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+  .sidebar { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transition: transform .25s; }
+  .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo .brand { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
+  .sidebar-logo .tagline { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+  .nav-section { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; padding: 14px 10px 6px; }
+  .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: all .15s; margin-bottom: 2px; }
+  .nav-link:hover { background: var(--surface2); color: var(--text); }
+  .nav-link.active { background: var(--accent); color: #fff; }
+  .sidebar-footer { padding: 14px 8px; border-top: 1px solid var(--border); }
+  .user-pill { display: flex; align-items: center; gap: 10px; padding: 9px 10px; }
+  .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; color: var(--muted); }
+  .logout-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 6px; border-radius: 6px; transition: all .15s; }
+  .logout-btn:hover { color: var(--red); }
+
+  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 50; }
+  .menu-toggle { display: none; background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; border-radius: 6px; }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-actions { margin-left: auto; display: flex; gap: 10px; }
+  .content { padding: 24px; flex: 1; max-width: 800px; }
+
+  /* Back link */
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; text-decoration: none; margin-bottom: 20px; transition: color .15s; }
+  .back-link:hover { color: var(--text); }
+
+  /* Project header */
+  .project-header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+  .project-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  .project-title { font-size: 22px; font-weight: 700; line-height: 1.2; }
+  .project-client { font-size: 14px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+  .project-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .p-stat { }
+  .p-stat-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+  .p-stat-value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-title { font-size: 14px; font-weight: 600; }
+  .card-body { padding: 20px; }
+
+  /* Detail rows */
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .detail-item { }
+  .detail-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
+  .detail-value { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .detail-value.mono { font-family: monospace; font-size: 13px; }
+  .detail-item.full { grid-column: 1 / -1; }
+
+  /* Edit form */
+  .edit-form { display: none; }
+  .edit-form.open { display: block; }
+  .view-mode { }
+  .view-mode.hidden { display: none; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .form-control { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 12px; font-size: 13px; outline: none; font-family: inherit; transition: border-color .15s; }
+  .form-control:focus { border-color: var(--accent); }
+  .form-control::placeholder { color: var(--muted); }
+  select.form-control option { background: var(--surface); }
+  textarea.form-control { resize: vertical; min-height: 80px; }
+  .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-active { background: rgba(34,197,94,.15); color: #4ade80; }
+  .badge-completed { background: rgba(59,130,246,.15); color: #60a5fa; }
+  .badge-on-hold { background: rgba(234,179,8,.15); color: #facc15; }
+  .badge-cancelled { background: rgba(239,68,68,.15); color: #f87171; }
+
+  /* Buttons */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: all .15s; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-danger { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+  .btn-danger:hover { background: rgba(239,68,68,.2); }
+
+  /* Confirm dialog */
+  .confirm-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 300; align-items: center; justify-content: center; padding: 16px; }
+  .confirm-bg.open { display: flex; }
+  .confirm-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; max-width: 360px; width: 100%; text-align: center; }
+  .confirm-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .confirm-text { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+  .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+  /* Loading */
+  .loading { padding: 64px; text-align: center; color: var(--muted); font-size: 13px; }
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; font-size: 13px; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .3s; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: rgba(34,197,94,.4); color: #4ade80; }
+  .toast.error { border-color: rgba(239,68,68,.4); color: #f87171; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; }
+  .overlay.open { display: block; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,.5); }
+    .main { margin-left: 0; }
+    .menu-toggle { display: block; }
+    .topbar { padding: 12px 16px; }
+    .content { padding: 16px; max-width: 100%; }
+    .project-stats { grid-template-columns: 1fr 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
+    .project-header-top { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 420px) {
+    .project-stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="brand">A.G.R Automation</div>
+    <div class="tagline">BOQ Management System</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Main</div>
+    <a href="dashboard.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <a href="quotes.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Quotes
+    </a>
+    <a href="clients.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Clients
+    </a>
+    <div class="nav-section">Work</div>
+    <a href="projects.html" class="nav-link active">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Projects
+    </a>
+    <a href="analytics.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+    <div class="nav-section" id="admin-section" style="display:none">Admin</div>
+    <a href="users.html" class="nav-link" id="users-link" style="display:none">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Users
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="user-avatar" id="avatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="user-name">Loading…</div>
+        <div class="user-role" id="user-role"></div>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Logout">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+
+<div class="main">
+  <header class="topbar">
+    <button class="menu-toggle" onclick="toggleSidebar()">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span class="topbar-title" id="page-title">Project Detail</span>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" id="edit-btn" onclick="enterEdit()" style="font-size:12px;padding:7px 13px;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit
+      </button>
+      <button class="btn btn-danger" onclick="confirmDelete()" style="font-size:12px;padding:7px 13px;">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        Delete
+      </button>
+    </div>
+  </header>
+
+  <div class="content" id="content">
+    <div class="loading"><span class="spinner"></span>Loading project…</div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="confirm-bg" id="confirm-modal">
+  <div class="confirm-box">
+    <div class="confirm-title">Delete Project?</div>
+    <div class="confirm-text">This action cannot be undone. The project will be permanently removed.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" onclick="deleteProject()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://agr-boq-backend.agrayush98.workers.dev';
+let project = null;
+const projectId = new URLSearchParams(location.search).get('id');
+
+function getSession() { return localStorage.getItem('sessionId'); }
+function getUser() { try { return JSON.parse(localStorage.getItem('agr_user') || 'null'); } catch { return null; } }
+
+async function logout() {
+  await fetch(`${API}/api/auth/logout`, { method: 'POST', headers: { 'X-Session-ID': getSession() } }).catch(() => {});
+  localStorage.clear();
+  location.href = 'login.html';
+}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('mob-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('mob-overlay').classList.remove('open');
+}
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'; }
+
+function statusBadge(s) {
+  const map = { active: 'badge-active', completed: 'badge-completed', 'on-hold': 'badge-on-hold', cancelled: 'badge-cancelled' };
+  const labels = { active: 'Active', completed: 'Completed', 'on-hold': 'On Hold', cancelled: 'Cancelled' };
+  return `<span class="badge ${map[s] || 'badge-active'}">${labels[s] || s}</span>`;
+}
+
+function renderView() {
+  const p = project;
+  document.getElementById('page-title').textContent = p.name;
+
+  const daysActive = p.startDate
+    ? Math.floor((Date.now() - new Date(p.startDate)) / 86400000)
+    : null;
+
+  document.getElementById('content').innerHTML = `
+    <a href="projects.html" class="back-link">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      All Projects
+    </a>
+
+    <div class="project-header">
+      <div class="project-header-top">
+        <div>
+          <div class="project-title">${p.name}</div>
+          <div class="project-client">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            ${p.clientName}
+          </div>
+        </div>
+        ${statusBadge(p.status)}
+      </div>
+      <div class="project-stats">
+        <div class="p-stat">
+          <div class="p-stat-label">Project Value</div>
+          <div class="p-stat-value">${p.totalValue ? fmt(p.totalValue) : '—'}</div>
+        </div>
+        <div class="p-stat">
+          <div class="p-stat-label">Start Date</div>
+          <div class="p-stat-value" style="font-size:15px;font-weight:600">${fmtDate(p.startDate)}</div>
+        </div>
+        <div class="p-stat">
+          <div class="p-stat-label">${p.status === 'completed' ? 'End Date' : 'Days Active'}</div>
+          <div class="p-stat-value" style="font-size:15px;font-weight:600">${p.status === 'completed' ? fmtDate(p.endDate) : (daysActive !== null ? daysActive + 'd' : '—')}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Project Details</span>
+      </div>
+      <div class="card-body">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Status</div>
+            <div class="detail-value">${statusBadge(p.status)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">End Date</div>
+            <div class="detail-value">${fmtDate(p.endDate)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Created</div>
+            <div class="detail-value">${fmtDate(p.createdAt)}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Last Updated</div>
+            <div class="detail-value">${fmtDate(p.updatedAt)}</div>
+          </div>
+          ${p.description ? `<div class="detail-item full">
+            <div class="detail-label">Description</div>
+            <div class="detail-value" style="white-space:pre-wrap">${p.description}</div>
+          </div>` : ''}
+          ${p.notes ? `<div class="detail-item full">
+            <div class="detail-label">Notes</div>
+            <div class="detail-value" style="white-space:pre-wrap;color:var(--muted)">${p.notes}</div>
+          </div>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function enterEdit() {
+  const p = project;
+  document.getElementById('content').innerHTML = `
+    <a href="projects.html" class="back-link">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      All Projects
+    </a>
+    <div class="card">
+      <div class="card-header"><span class="card-title">Edit Project</span></div>
+      <div class="card-body">
+        <form id="edit-form" onsubmit="saveEdit(event)">
+          <div class="form-grid">
+            <div class="form-group full">
+              <label class="form-label">Project Name *</label>
+              <input class="form-control" id="e-name" value="${escHtml(p.name)}" required>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Client Name *</label>
+              <input class="form-control" id="e-client" value="${escHtml(p.clientName)}" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Status</label>
+              <select class="form-control" id="e-status">
+                <option value="active" ${p.status === 'active' ? 'selected' : ''}>Active</option>
+                <option value="on-hold" ${p.status === 'on-hold' ? 'selected' : ''}>On Hold</option>
+                <option value="completed" ${p.status === 'completed' ? 'selected' : ''}>Completed</option>
+                <option value="cancelled" ${p.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total Value (₹)</label>
+              <input class="form-control" id="e-value" type="number" min="0" step="1000" value="${p.totalValue || ''}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Start Date</label>
+              <input class="form-control" id="e-start" type="date" value="${p.startDate ? p.startDate.split('T')[0] : ''}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">End Date</label>
+              <input class="form-control" id="e-end" type="date" value="${p.endDate ? p.endDate.split('T')[0] : ''}">
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Description</label>
+              <textarea class="form-control" id="e-desc">${escHtml(p.description || '')}</textarea>
+            </div>
+            <div class="form-group full">
+              <label class="form-label">Notes</label>
+              <textarea class="form-control" id="e-notes">${escHtml(p.notes || '')}</textarea>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-ghost" onclick="renderView()">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="save-btn">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function escHtml(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+async function saveEdit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('save-btn');
+  btn.textContent = 'Saving…';
+  btn.disabled = true;
+
+  const body = {
+    name: document.getElementById('e-name').value,
+    clientName: document.getElementById('e-client').value,
+    status: document.getElementById('e-status').value,
+    totalValue: parseFloat(document.getElementById('e-value').value) || 0,
+    startDate: document.getElementById('e-start').value || null,
+    endDate: document.getElementById('e-end').value || null,
+    description: document.getElementById('e-desc').value || null,
+    notes: document.getElementById('e-notes').value || null,
+  };
+
+  const res = await fetch(`${API}/api/projects/${projectId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+
+  if (data.success) {
+    project = { ...project, ...body, updatedAt: new Date().toISOString() };
+    toast('Project updated!');
+    renderView();
+  } else {
+    btn.textContent = 'Save Changes';
+    btn.disabled = false;
+    toast(data.error || 'Failed to save', 'error');
+  }
+}
+
+function confirmDelete() { document.getElementById('confirm-modal').classList.add('open'); }
+function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); }
+
+async function deleteProject() {
+  closeConfirm();
+  await fetch(`${API}/api/projects/${projectId}`, { method: 'DELETE', headers: { 'X-Session-ID': getSession() } });
+  toast('Project deleted');
+  setTimeout(() => location.href = 'projects.html', 800);
+}
+
+async function init() {
+  if (!getSession()) { location.href = 'login.html'; return; }
+  if (!projectId) { location.href = 'projects.html'; return; }
+
+  const user = getUser();
+  if (user) {
+    document.getElementById('user-name').textContent = user.fullName || user.username;
+    document.getElementById('user-role').textContent = user.role;
+    document.getElementById('avatar').textContent = (user.fullName || user.username || '?')[0].toUpperCase();
+    if (user.role === 'admin') {
+      document.getElementById('admin-section').style.display = '';
+      document.getElementById('users-link').style.display = '';
+    }
+  }
+
+  const res = await fetch(`${API}/api/projects/${projectId}`, { headers: { 'X-Session-ID': getSession() } });
+  if (!res.ok) { document.getElementById('content').innerHTML = '<div class="loading">Project not found</div>'; return; }
+  project = await res.json();
+  renderView();
+}
+
+init();
+</script>
+</body>
+</html>
