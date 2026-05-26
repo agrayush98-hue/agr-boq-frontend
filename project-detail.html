@@ -517,14 +517,12 @@ function renderPage(){
 
     <!-- Payments Tab -->
     <div class="tab-panel" id="tab-payments">
-      ${tabPlaceholder('payments','Payment Milestones','Track advance payment, milestone payments, and final settlement.',
-        'Add Payment','payments','M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',c.payments)}
+      <div id="payments-ui"></div>
     </div>
 
     <!-- Tasks Tab -->
     <div class="tab-panel" id="tab-tasks">
-      ${tabPlaceholder('tasks','Execution Tasks','Break down the installation work into tasks and assign them to team members.',
-        'Add Task','tasks','M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',c.tasks)}
+      <div id="tasks-ui"></div>
     </div>
   `;
 
@@ -559,6 +557,8 @@ function showTab(name, btn){
   if(name==='survey'   && !window._svLoaded)       loadSurveyTab();
   if(name==='boq'      && !window._boqLoaded)      loadBOQTab();
   if(name==='proposal' && !window._propLoaded)     loadProposalTab();
+  if(name==='payments' && !window._pymLoaded)      loadPaymentsTab();
+  if(name==='tasks'    && !window._tskLoaded)      loadTasksTab();
 }
 
 async function quickUpdateStatus(){
@@ -1775,6 +1775,533 @@ async function init(){
     document.getElementById('main-content').innerHTML=`<div style="padding:40px;text-align:center;color:#f87171">${e.message||'Failed to load project'}</div>`;
   }
 }
+init();
+
+// ==================== PAYMENTS TAB ====================
+
+window._pymLoaded = false;
+
+async function loadPaymentsTab(){
+  const el = document.getElementById('payments-ui');
+  el.innerHTML = '<p style="color:#94a3b8;padding:24px">Loading payments…</p>';
+  try {
+    const data = await fetch(`${API}/api/projects/${projectId}/payments`, {headers: ah()}).then(r => r.json());
+    window._payments = Array.isArray(data) ? data : [];
+    window._pymLoaded = true;
+    renderPaymentsUI();
+  } catch(e) { el.innerHTML = `<p style="color:#f87171;padding:24px">${e.message}</p>`; }
+}
+
+function milestoneConfig(grandTotal) {
+  const gt = grandTotal || project.budget || 0;
+  return [
+    {type:'advance',     label:'Advance',     pct:30, amount: Math.round(gt*0.30), icon:'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'},
+    {type:'milestone_1', label:'Milestone 1', pct:30, amount: Math.round(gt*0.30), icon:'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'},
+    {type:'milestone_2', label:'Milestone 2', pct:30, amount: Math.round(gt*0.30), icon:'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'},
+    {type:'final',       label:'Final',       pct:10, amount: Math.round(gt*0.10), icon:'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'},
+  ];
+}
+
+function renderPaymentsUI(){
+  const el = document.getElementById('payments-ui');
+  const pyms = window._payments || [];
+
+  // Get grandTotal from approved BOQ if available
+  let grandTotal = project.budget || 0;
+  if (window._boqs) {
+    const approved = window._boqs.find(b => b.status === 'approved');
+    if (approved) {
+      try { const t = JSON.parse(approved.totals_json||'{}'); if (t.grandTotal) grandTotal = t.grandTotal; } catch(e){}
+    }
+  }
+
+  const milestones = milestoneConfig(grandTotal);
+  const statusColors = {pending:'#f59e0b', paid:'#22c55e', overdue:'#ef4444'};
+  const statusBg = {pending:'rgba(245,158,11,.12)', paid:'rgba(34,197,94,.12)', overdue:'rgba(239,68,68,.12)'};
+
+  // Map existing payments by type
+  const byType = {};
+  pyms.forEach(p => { byType[p.type] = p; });
+
+  const scheduled = milestones.filter(m => byType[m.type]);
+  const totalPaid = pyms.filter(p => p.status === 'paid').reduce((s,p) => s+p.amount, 0);
+  const totalDue  = pyms.filter(p => p.status !== 'paid').reduce((s,p) => s+p.amount, 0);
+
+  const fmt = n => '₹' + Number(n||0).toLocaleString('en-IN');
+
+  el.innerHTML = `
+  <style>
+    .pym-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+    .pym-summary{display:flex;gap:16px;flex-wrap:wrap}
+    .pym-stat{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:14px 20px;min-width:130px}
+    .pym-stat-label{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+    .pym-stat-val{font-size:20px;font-weight:700}
+    .milestone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:28px}
+    .milestone-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+    .milestone-card.paid{border-color:rgba(34,197,94,.3)}
+    .milestone-card.overdue{border-color:rgba(239,68,68,.3)}
+    .milestone-card-type{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+    .milestone-card-label{font-size:16px;font-weight:600;margin-bottom:8px}
+    .milestone-card-amount{font-size:22px;font-weight:700;color:#e2e8f0;margin-bottom:8px}
+    .milestone-card-pct{font-size:12px;color:#64748b}
+    .milestone-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin-top:8px}
+    .milestone-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+    .timeline-title{font-size:16px;font-weight:600;margin-bottom:16px;color:#e2e8f0}
+    .timeline{position:relative;padding-left:24px}
+    .timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:rgba(255,255,255,.1)}
+    .timeline-item{position:relative;margin-bottom:20px}
+    .timeline-dot{position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid}
+    .timeline-item-content{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px 16px}
+    .timeline-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px}
+    .setup-card{background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.2);border-radius:12px;padding:28px;text-align:center;max-width:520px;margin:0 auto}
+    .setup-card h3{font-size:18px;font-weight:600;margin-bottom:8px;color:#e2e8f0}
+    .setup-card p{color:#94a3b8;font-size:14px;margin-bottom:20px}
+    .setup-milestone-list{text-align:left;margin-bottom:20px}
+    .setup-milestone-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:14px}
+  </style>
+  <div style="padding:24px">
+    <div class="pym-header">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:#e2e8f0">Payment Schedule</div>
+        <div style="font-size:13px;color:#64748b;margin-top:2px">Track milestone payments for this project</div>
+      </div>
+      ${scheduled.length < 4 ? `<button class="btn btn-primary btn-sm" onclick="openSetupPayments()">Setup Schedule</button>` : `<button class="btn btn-secondary btn-sm" onclick="openAddPaymentModal()">+ Record Payment</button>`}
+    </div>
+
+    ${scheduled.length === 0 ? `
+    <div class="setup-card">
+      <h3>Set Up Payment Schedule</h3>
+      <p>Create a payment schedule based on the project total. The standard split is 30/30/30/10 across advance, two milestones, and final payment.</p>
+      <div class="setup-milestone-list">
+        ${milestones.map(m=>`<div class="setup-milestone-row"><span>${m.label} (${m.pct}%)</span><span style="font-weight:600">${fmt(m.amount)}</span></div>`).join('')}
+      </div>
+      <p style="font-size:12px;color:#475569;margin-bottom:16px">Based on project total: ${fmt(grandTotal)}</p>
+      <button class="btn btn-primary" onclick="createPaymentSchedule(${grandTotal})">Create Schedule</button>
+    </div>
+    ` : `
+    <div class="pym-summary">
+      <div class="pym-stat"><div class="pym-stat-label">Total Received</div><div class="pym-stat-val" style="color:#22c55e">${fmt(totalPaid)}</div></div>
+      <div class="pym-stat"><div class="pym-stat-label">Outstanding</div><div class="pym-stat-val" style="color:#f59e0b">${fmt(totalDue)}</div></div>
+      <div class="pym-stat"><div class="pym-stat-label">Project Total</div><div class="pym-stat-val">${fmt(grandTotal)}</div></div>
+    </div>
+    <div class="milestone-grid" style="margin-top:20px">
+      ${milestones.map(m => {
+        const rec = byType[m.type];
+        if (!rec) return `<div class="milestone-card">
+          <div class="milestone-card-type">${m.type.replace('_',' ')}</div>
+          <div class="milestone-card-label">${m.label}</div>
+          <div class="milestone-card-amount">${fmt(m.amount)}</div>
+          <div class="milestone-card-pct">${m.pct}% of total</div>
+          <span class="milestone-badge" style="background:rgba(100,116,139,.15);color:#94a3b8">Not Scheduled</span>
+          <div class="milestone-actions"><button class="btn btn-secondary btn-sm" onclick="openAddPaymentModal('${m.type}',${m.amount})">+ Add</button></div>
+        </div>`;
+        return `<div class="milestone-card ${rec.status}">
+          <div class="milestone-card-type">${m.type.replace('_',' ')}</div>
+          <div class="milestone-card-label">${m.label}</div>
+          <div class="milestone-card-amount">${fmt(rec.amount)}</div>
+          <div class="milestone-card-pct">${m.pct}% · Due: ${rec.dueDate||'—'}</div>
+          <span class="milestone-badge" style="background:${statusBg[rec.status]};color:${statusColors[rec.status]}">${rec.status.toUpperCase()}</span>
+          <div class="milestone-actions">
+            ${rec.status !== 'paid' ? `<button class="btn btn-primary btn-sm" onclick="markPaymentPaid(${rec.id})">Mark Paid</button>` : `<span style="font-size:12px;color:#22c55e">Paid on ${rec.paidDate||rec.updatedAt?.slice(0,10)}</span>`}
+            <button class="btn btn-ghost btn-sm" onclick="openEditPaymentModal(${rec.id})">Edit</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    ${pyms.length > 0 ? `
+    <div class="timeline-title">Payment History</div>
+    <div class="timeline">
+      ${[...pyms].sort((a,b)=>a.createdAt<b.createdAt?-1:1).map(p=>`
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background:${statusColors[p.status]};border-color:${statusColors[p.status]}"></div>
+        <div class="timeline-item-content">
+          <div class="timeline-item-header">
+            <span style="font-weight:600">${p.type.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())} — ${fmt(p.amount)}</span>
+            <span class="milestone-badge" style="background:${statusBg[p.status]};color:${statusColors[p.status]}">${p.status.toUpperCase()}</span>
+          </div>
+          <div style="font-size:12px;color:#64748b">${p.paidDate ? 'Paid: '+p.paidDate : p.dueDate ? 'Due: '+p.dueDate : 'No date set'} ${p.transactionRef ? '· Ref: '+p.transactionRef : ''}</div>
+          ${p.notes ? `<div style="font-size:12px;color:#94a3b8;margin-top:4px">${p.notes}</div>` : ''}
+        </div>
+      </div>`).join('')}
+    </div>` : ''}
+    `}
+  </div>
+
+  <!-- Add/Edit Payment Modal -->
+  <div id="pym-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center">
+    <div style="background:#1e293b;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:28px;width:100%;max-width:460px;margin:16px">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:20px" id="pym-modal-title">Payment</h3>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label class="form-label">Type</label>
+          <select id="pm-type" class="form-control">
+            <option value="advance">Advance</option>
+            <option value="milestone_1">Milestone 1</option>
+            <option value="milestone_2">Milestone 2</option>
+            <option value="final">Final</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Amount (₹)</label>
+          <input id="pm-amount" type="number" class="form-control" placeholder="0">
+        </div>
+        <div>
+          <label class="form-label">Due Date</label>
+          <input id="pm-due" type="date" class="form-control">
+        </div>
+        <div id="pm-paid-fields" style="display:none">
+          <label class="form-label">Paid Date</label>
+          <input id="pm-paiddate" type="date" class="form-control" style="margin-bottom:10px">
+          <label class="form-label">Transaction Ref</label>
+          <input id="pm-ref" type="text" class="form-control" placeholder="UTR / Cheque No.">
+        </div>
+        <div>
+          <label class="form-label">Status</label>
+          <select id="pm-status" class="form-control" onchange="document.getElementById('pm-paid-fields').style.display=this.value==='paid'?'block':'none'">
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="overdue">Overdue</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Notes</label>
+          <textarea id="pm-notes" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closePymModal()">Cancel</button>
+        <button class="btn btn-primary" id="pm-save-btn" onclick="savePayment()">Save</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function openSetupPayments(){ createPaymentSchedule(); }
+
+async function createPaymentSchedule(grandTotal){
+  let gt = grandTotal;
+  if (!gt) {
+    gt = project.budget || 0;
+    if (window._boqs) {
+      const approved = window._boqs.find(b=>b.status==='approved');
+      if (approved) { try{ const t=JSON.parse(approved.totals_json||'{}'); if(t.grandTotal) gt=t.grandTotal; }catch(e){} }
+    }
+  }
+  const milestones = milestoneConfig(gt);
+  try {
+    await Promise.all(milestones.map(m =>
+      fetch(`${API}/api/projects/${projectId}/payments`, {
+        method:'POST', headers:jh(),
+        body: JSON.stringify({amount: m.amount, type: m.type})
+      })
+    ));
+    toast('Payment schedule created');
+    window._pymLoaded = false;
+    loadPaymentsTab();
+  } catch(e) { toast(e.message||'Failed','error'); }
+}
+
+window._editPaymentId = null;
+
+function openAddPaymentModal(type='advance', amount=0){
+  window._editPaymentId = null;
+  document.getElementById('pym-modal-title').textContent = 'Add Payment';
+  document.getElementById('pm-type').value = type;
+  document.getElementById('pm-amount').value = amount || '';
+  document.getElementById('pm-due').value = '';
+  document.getElementById('pm-status').value = 'pending';
+  document.getElementById('pm-paiddate').value = '';
+  document.getElementById('pm-ref').value = '';
+  document.getElementById('pm-notes').value = '';
+  document.getElementById('pm-paid-fields').style.display = 'none';
+  const m = document.getElementById('pym-modal');
+  m.style.display='flex';
+}
+
+function openEditPaymentModal(id){
+  const rec = window._payments.find(p=>p.id===id);
+  if(!rec) return;
+  window._editPaymentId = id;
+  document.getElementById('pym-modal-title').textContent = 'Edit Payment';
+  document.getElementById('pm-type').value = rec.type;
+  document.getElementById('pm-amount').value = rec.amount;
+  document.getElementById('pm-due').value = rec.dueDate||'';
+  document.getElementById('pm-status').value = rec.status;
+  document.getElementById('pm-paiddate').value = rec.paidDate||'';
+  document.getElementById('pm-ref').value = rec.transactionRef||'';
+  document.getElementById('pm-notes').value = rec.notes||'';
+  document.getElementById('pm-paid-fields').style.display = rec.status==='paid'?'block':'none';
+  const m = document.getElementById('pym-modal');
+  m.style.display='flex';
+}
+
+function closePymModal(){
+  document.getElementById('pym-modal').style.display='none';
+}
+
+async function markPaymentPaid(id){
+  const today = new Date().toISOString().slice(0,10);
+  try {
+    await fetch(`${API}/api/payments/${id}`, {method:'PUT', headers:jh(), body:JSON.stringify({status:'paid', paidDate:today})});
+    toast('Payment marked as paid');
+    window._pymLoaded=false;
+    loadPaymentsTab();
+    // Refresh project status badge
+    const pData = await fetch(`${API}/api/projects/${projectId}`,{headers:ah()}).then(r=>r.json());
+    if(pData && pData.status) project.status=pData.status;
+  } catch(e){ toast(e.message||'Failed','error'); }
+}
+
+async function savePayment(){
+  const btn = document.getElementById('pm-save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+  const body = {
+    type:     document.getElementById('pm-type').value,
+    amount:   Number(document.getElementById('pm-amount').value),
+    dueDate:  document.getElementById('pm-due').value||null,
+    status:   document.getElementById('pm-status').value,
+    paidDate: document.getElementById('pm-paiddate').value||null,
+    transactionRef: document.getElementById('pm-ref').value||null,
+    notes:    document.getElementById('pm-notes').value||null,
+  };
+  try {
+    if (window._editPaymentId) {
+      await fetch(`${API}/api/payments/${window._editPaymentId}`, {method:'PUT', headers:jh(), body:JSON.stringify(body)});
+      toast('Payment updated');
+    } else {
+      await fetch(`${API}/api/projects/${projectId}/payments`, {method:'POST', headers:jh(), body:JSON.stringify(body)});
+      toast('Payment added');
+    }
+    closePymModal();
+    window._pymLoaded=false;
+    loadPaymentsTab();
+  } catch(e){ toast(e.message||'Failed','error'); }
+  finally{ btn.disabled=false; btn.textContent='Save'; }
+}
+
+// ==================== TASKS TAB ====================
+
+window._tskLoaded = false;
+
+async function loadTasksTab(){
+  const el = document.getElementById('tasks-ui');
+  el.innerHTML = '<p style="color:#94a3b8;padding:24px">Loading tasks…</p>';
+  try {
+    const data = await fetch(`${API}/api/projects/${projectId}/tasks`, {headers: ah()}).then(r => r.json());
+    window._tasks = Array.isArray(data) ? data : [];
+    window._tskLoaded = true;
+    renderTasksUI();
+  } catch(e) { el.innerHTML = `<p style="color:#f87171;padding:24px">${e.message}</p>`; }
+}
+
+function renderTasksUI(){
+  const el = document.getElementById('tasks-ui');
+  const tasks = window._tasks || [];
+  const cols = [
+    {status:'pending',     label:'Pending',     color:'#f59e0b', bg:'rgba(245,158,11,.1)'},
+    {status:'in_progress', label:'In Progress', color:'#6366f1', bg:'rgba(99,102,241,.1)'},
+    {status:'completed',   label:'Completed',   color:'#22c55e', bg:'rgba(34,197,94,.1)'},
+  ];
+  const tasksByCol = {};
+  cols.forEach(c => { tasksByCol[c.status] = tasks.filter(t=>t.status===c.status); });
+  const total = tasks.length;
+  const done = tasksByCol['completed'].length;
+
+  el.innerHTML = `
+  <style>
+    .kanban-wrap{padding:24px}
+    .kanban-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+    .kanban-progress-bar{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;max-width:320px;flex:1}
+    .kanban-progress-fill{height:100%;background:linear-gradient(90deg,#6366f1,#22c55e);border-radius:3px;transition:width .4s}
+    .kanban-board{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    @media(max-width:768px){.kanban-board{grid-template-columns:1fr}}
+    .kanban-col{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px;min-height:200px}
+    .kanban-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .kanban-col-label{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+    .kanban-col-dot{width:8px;height:8px;border-radius:50%}
+    .kanban-col-count{font-size:12px;color:#64748b;background:rgba(255,255,255,.06);padding:2px 8px;border-radius:10px}
+    .task-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:12px;margin-bottom:10px;cursor:grab;transition:box-shadow .2s;user-select:none}
+    .task-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.3)}
+    .task-card.dragging{opacity:.5}
+    .task-card-name{font-size:14px;font-weight:500;color:#e2e8f0;margin-bottom:4px}
+    .task-card-meta{font-size:11px;color:#64748b;display:flex;gap:10px;flex-wrap:wrap}
+    .task-card-actions{display:flex;gap:6px;margin-top:8px}
+    .kanban-drop-zone{border:2px dashed rgba(99,102,241,.3);border-radius:8px;padding:12px;text-align:center;font-size:12px;color:#4f46e5;display:none;margin-top:4px}
+    .kanban-drop-zone.drag-over{display:block;background:rgba(99,102,241,.05)}
+  </style>
+  <div class="kanban-wrap">
+    <div class="kanban-header">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:#e2e8f0">Execution Tasks</div>
+        <div style="font-size:13px;color:#64748b;margin-top:2px">${done}/${total} tasks completed</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex:1;justify-content:flex-end;flex-wrap:wrap">
+        ${total>0?`<div style="display:flex;align-items:center;gap:8px;flex:1;max-width:240px"><div class="kanban-progress-bar"><div class="kanban-progress-fill" style="width:${total?Math.round(done/total*100):0}%"></div></div><span style="font-size:12px;color:#64748b">${total?Math.round(done/total*100):0}%</span></div>`:''}
+        <button class="btn btn-primary btn-sm" onclick="openAddTaskModal()">+ Add Task</button>
+      </div>
+    </div>
+    <div class="kanban-board">
+      ${cols.map(col => `
+      <div class="kanban-col" ondragover="event.preventDefault();this.querySelector('.kanban-drop-zone').style.display='block'" ondragleave="this.querySelector('.kanban-drop-zone').style.display='none'" ondrop="dropTask(event,'${col.status}')">
+        <div class="kanban-col-header">
+          <div class="kanban-col-label">
+            <div class="kanban-col-dot" style="background:${col.color}"></div>
+            ${col.label}
+          </div>
+          <span class="kanban-col-count">${tasksByCol[col.status].length}</span>
+        </div>
+        ${tasksByCol[col.status].map(t => renderTaskCard(t)).join('')}
+        <div class="kanban-drop-zone">Drop here</div>
+      </div>`).join('')}
+    </div>
+  </div>
+
+  <!-- Task Modal -->
+  <div id="task-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center">
+    <div style="background:#1e293b;border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:28px;width:100%;max-width:460px;margin:16px">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:20px" id="task-modal-title">Add Task</h3>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <label class="form-label">Task Name *</label>
+          <input id="tk-name" class="form-control" placeholder="e.g. Install conduits in bedroom">
+        </div>
+        <div>
+          <label class="form-label">Assigned To</label>
+          <input id="tk-assigned" class="form-control" placeholder="Team member name">
+        </div>
+        <div>
+          <label class="form-label">Due Date</label>
+          <input id="tk-due" type="date" class="form-control">
+        </div>
+        <div>
+          <label class="form-label">Status</label>
+          <select id="tk-status" class="form-control">
+            <option value="pending">Pending</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Notes</label>
+          <textarea id="tk-notes" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+        <button class="btn btn-ghost" onclick="closeTaskModal()">Cancel</button>
+        <button class="btn btn-primary" id="tk-save-btn" onclick="saveTask()">Save</button>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function renderTaskCard(t){
+  const statusColors = {pending:'#f59e0b', in_progress:'#6366f1', completed:'#22c55e'};
+  return `<div class="task-card" draggable="true" ondragstart="event.dataTransfer.setData('taskId','${t.id}');this.classList.add('dragging')" ondragend="this.classList.remove('dragging')">
+    <div class="task-card-name">${t.taskName}</div>
+    <div class="task-card-meta">
+      ${t.assignedTo?`<span>👤 ${t.assignedTo}</span>`:''}
+      ${t.dueDate?`<span>📅 ${t.dueDate}</span>`:''}
+    </div>
+    <div class="task-card-actions">
+      <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 8px" onclick="openEditTaskModal(${t.id})">Edit</button>
+      <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 8px;color:#f87171" onclick="deleteTaskItem(${t.id})">Delete</button>
+    </div>
+  </div>`;
+}
+
+async function dropTask(event, newStatus){
+  event.preventDefault();
+  const id = Number(event.dataTransfer.getData('taskId'));
+  event.currentTarget.querySelector('.kanban-drop-zone').style.display='none';
+  if (!id) return;
+  const task = (window._tasks||[]).find(t=>t.id===id);
+  if (!task || task.status===newStatus) return;
+  try {
+    await fetch(`${API}/api/tasks/${id}`, {method:'PUT', headers:jh(), body:JSON.stringify({status:newStatus})});
+    window._tskLoaded=false;
+    loadTasksTab();
+    if(newStatus==='completed'){
+      const pData = await fetch(`${API}/api/projects/${projectId}`,{headers:ah()}).then(r=>r.json());
+      if(pData && pData.status) project.status=pData.status;
+    }
+  } catch(e){ toast(e.message||'Failed','error'); }
+}
+
+window._editTaskId = null;
+
+function openAddTaskModal(){
+  window._editTaskId = null;
+  document.getElementById('task-modal-title').textContent = 'Add Task';
+  document.getElementById('tk-name').value = '';
+  document.getElementById('tk-assigned').value = '';
+  document.getElementById('tk-due').value = '';
+  document.getElementById('tk-status').value = 'pending';
+  document.getElementById('tk-notes').value = '';
+  document.getElementById('task-modal').style.display='flex';
+}
+
+function openEditTaskModal(id){
+  const t = (window._tasks||[]).find(t=>t.id===id);
+  if(!t) return;
+  window._editTaskId = id;
+  document.getElementById('task-modal-title').textContent = 'Edit Task';
+  document.getElementById('tk-name').value = t.taskName;
+  document.getElementById('tk-assigned').value = t.assignedTo||'';
+  document.getElementById('tk-due').value = t.dueDate||'';
+  document.getElementById('tk-status').value = t.status;
+  document.getElementById('tk-notes').value = t.notes||'';
+  document.getElementById('task-modal').style.display='flex';
+}
+
+function closeTaskModal(){
+  document.getElementById('task-modal').style.display='none';
+}
+
+async function saveTask(){
+  const btn = document.getElementById('tk-save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+  const body = {
+    taskName:   document.getElementById('tk-name').value.trim(),
+    assignedTo: document.getElementById('tk-assigned').value.trim()||null,
+    dueDate:    document.getElementById('tk-due').value||null,
+    status:     document.getElementById('tk-status').value,
+    notes:      document.getElementById('tk-notes').value||null,
+  };
+  if(!body.taskName){ toast('Task name is required','error'); btn.disabled=false; btn.textContent='Save'; return; }
+  try {
+    if(window._editTaskId){
+      await fetch(`${API}/api/tasks/${window._editTaskId}`, {method:'PUT', headers:jh(), body:JSON.stringify(body)});
+      toast('Task updated');
+    } else {
+      await fetch(`${API}/api/projects/${projectId}/tasks`, {method:'POST', headers:jh(), body:JSON.stringify(body)});
+      toast('Task added');
+      if(project.counts) project.counts.tasks=(project.counts.tasks||0)+1;
+      const tc=document.querySelector('.tab-btn[onclick*="tasks"] .tab-count');
+      if(tc) tc.textContent=project.counts.tasks||0;
+    }
+    closeTaskModal();
+    window._tskLoaded=false;
+    loadTasksTab();
+  } catch(e){ toast(e.message||'Failed','error'); }
+  finally{ btn.disabled=false; btn.textContent='Save'; }
+}
+
+async function deleteTaskItem(id){
+  if(!confirm('Delete this task?')) return;
+  try {
+    await fetch(`${API}/api/tasks/${id}`, {method:'DELETE', headers:ah()});
+    toast('Task deleted');
+    if(project.counts) project.counts.tasks=Math.max(0,(project.counts.tasks||1)-1);
+    const tc=document.querySelector('.tab-btn[onclick*="tasks"] .tab-count');
+    if(tc) tc.textContent=project.counts.tasks||0;
+    window._tskLoaded=false;
+    loadTasksTab();
+  } catch(e){ toast(e.message||'Failed','error'); }
+}
+
 init();
 </script>
 </body>
