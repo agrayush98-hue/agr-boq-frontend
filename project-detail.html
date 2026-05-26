@@ -3,225 +3,213 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A.G.R Automation — Project Detail</title>
+<title>A.G.R — Project Detail</title>
 <style>
-  :root {
-    --bg: #0f172a; --surface: #1e293b; --surface2: #273549; --border: #334155;
-    --text: #e2e8f0; --muted: #94a3b8; --accent: #3b82f6; --accent-hover: #2563eb;
-    --green: #22c55e; --yellow: #eab308; --red: #ef4444;
-    --radius: 10px; --sidebar-w: 220px;
+  :root{
+    --bg:#0f172a;--surface:#1e293b;--surface2:#273549;--border:#334155;
+    --text:#e2e8f0;--muted:#94a3b8;--accent:#3b82f6;--accent-hover:#2563eb;
+    --green:#22c55e;--red:#ef4444;--yellow:#eab308;--orange:#f97316;
+    --radius:10px;--sidebar-w:220px;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+  .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s;}
+  .sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);}
+  .sidebar-logo .brand{font-size:17px;font-weight:700;}
+  .sidebar-logo .tagline{font-size:11px;color:var(--muted);margin-top:2px;}
+  .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
+  .nav-section{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:14px 10px 6px;}
+  .nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500;transition:all .15s;cursor:pointer;margin-bottom:2px;}
+  .nav-link:hover{background:var(--surface2);color:var(--text);}
+  .nav-link.active{background:var(--accent);color:#fff;}
+  .sidebar-footer{padding:14px 8px;border-top:1px solid var(--border);}
+  .user-pill{display:flex;align-items:center;gap:10px;padding:9px 10px;}
+  .user-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+  .user-info{flex:1;min-width:0;}
+  .user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-role{font-size:11px;color:var(--muted);}
+  .logout-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;border-radius:6px;transition:all .15s;}
+  .logout-btn:hover{background:var(--surface2);color:var(--red);}
 
-  .sidebar { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transition: transform .25s; }
-  .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--border); }
-  .sidebar-logo .brand { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
-  .sidebar-logo .tagline { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
-  .nav-section { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; padding: 14px 10px 6px; }
-  .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: all .15s; margin-bottom: 2px; }
-  .nav-link:hover { background: var(--surface2); color: var(--text); }
-  .nav-link.active { background: var(--accent); color: #fff; }
-  .sidebar-footer { padding: 14px 8px; border-top: 1px solid var(--border); }
-  .user-pill { display: flex; align-items: center; gap: 10px; padding: 9px 10px; }
-  .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-  .user-info { flex: 1; min-width: 0; }
-  .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .user-role { font-size: 11px; color: var(--muted); }
-  .logout-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 6px; border-radius: 6px; transition: all .15s; }
-  .logout-btn:hover { color: var(--red); }
-
-  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 50; }
-  .menu-toggle { display: none; background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; border-radius: 6px; }
-  .topbar-title { font-size: 16px; font-weight: 600; }
-  .topbar-actions { margin-left: auto; display: flex; gap: 10px; }
-  .content { padding: 24px; flex: 1; max-width: 800px; }
-
-  /* Back link */
-  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; text-decoration: none; margin-bottom: 20px; transition: color .15s; }
-  .back-link:hover { color: var(--text); }
-
-  /* Project header */
-  .project-header { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
-  .project-header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
-  .project-title { font-size: 22px; font-weight: 700; line-height: 1.2; }
-  .project-client { font-size: 14px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
-  .project-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
-  .p-stat { }
-  .p-stat-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
-  .p-stat-value { font-size: 18px; font-weight: 700; margin-top: 4px; }
-
-  /* Cards */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 20px; overflow: hidden; }
-  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .card-title { font-size: 14px; font-weight: 600; }
-  .card-body { padding: 20px; }
-
-  /* Detail rows */
-  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  .detail-item { }
-  .detail-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 5px; }
-  .detail-value { font-size: 14px; color: var(--text); line-height: 1.5; }
-  .detail-value.mono { font-family: monospace; font-size: 13px; }
-  .detail-item.full { grid-column: 1 / -1; }
-
-  /* Edit form */
-  .edit-form { display: none; }
-  .edit-form.open { display: block; }
-  .view-mode { }
-  .view-mode.hidden { display: none; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .form-group { display: flex; flex-direction: column; gap: 6px; }
-  .form-group.full { grid-column: 1 / -1; }
-  .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
-  .form-control { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 12px; font-size: 13px; outline: none; font-family: inherit; transition: border-color .15s; }
-  .form-control:focus { border-color: var(--accent); }
-  .form-control::placeholder { color: var(--muted); }
-  select.form-control option { background: var(--surface); }
-  textarea.form-control { resize: vertical; min-height: 80px; }
-  .form-actions { display: flex; gap: 10px; margin-top: 20px; }
-
-  /* Badges */
-  .badge { display: inline-flex; align-items: center; padding: 4px 11px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-  .badge-active { background: rgba(34,197,94,.15); color: #4ade80; }
-  .badge-completed { background: rgba(59,130,246,.15); color: #60a5fa; }
-  .badge-on-hold { background: rgba(234,179,8,.15); color: #facc15; }
-  .badge-cancelled { background: rgba(239,68,68,.15); color: #f87171; }
+  /* Main layout */
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;}
+  .menu-toggle{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:4px;border-radius:6px;}
+  .back-link{display:flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;padding:5px 10px;border-radius:7px;border:1px solid var(--border);transition:all .15s;}
+  .back-link:hover{background:var(--surface2);color:var(--text);}
+  .breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
+  .breadcrumb span{color:var(--text);font-weight:600;}
+  .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .content{padding:24px;flex:1;max-width:900px;width:100%;}
 
   /* Buttons */
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: all .15s; text-decoration: none; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent-hover); }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
-  .btn-danger { background: rgba(239,68,68,.1); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
-  .btn-danger:hover { background: rgba(239,68,68,.2); }
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s;text-decoration:none;font-family:inherit;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover:not(:disabled){background:var(--accent-hover);}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);}
+  .btn-danger{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);}
+  .btn-danger:hover{background:rgba(239,68,68,.2);}
+  .btn-success{background:#16a34a;color:#fff;}
+  .btn-success:hover:not(:disabled){background:#15803d;}
+  .btn:disabled{opacity:.55;cursor:not-allowed;}
+  .btn-sm{padding:5px 12px;font-size:12px;}
 
-  /* Confirm dialog */
-  .confirm-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 300; align-items: center; justify-content: center; padding: 16px; }
-  .confirm-bg.open { display: flex; }
-  .confirm-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; max-width: 360px; width: 100%; text-align: center; }
-  .confirm-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-  .confirm-text { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
-  .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+  /* Project header card */
+  .project-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:20px;}
+  .ph-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:16px;}
+  .ph-icon{width:48px;height:48px;border-radius:10px;background:rgba(59,130,246,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .ph-info{flex:1;}
+  .ph-name{font-size:20px;font-weight:700;margin-bottom:4px;}
+  .ph-client{font-size:14px;color:var(--muted);}
+  .ph-meta{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--muted);}
+  .ph-meta-item{display:flex;align-items:center;gap:5px;}
 
-  /* Loading */
-  .loading { padding: 64px; text-align: center; color: var(--muted); font-size: 13px; }
-  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 8px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Status stepper */
+  .stepper{display:flex;align-items:center;gap:0;overflow-x:auto;padding:16px 0 4px;margin-bottom:4px;}
+  .step-node{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0;min-width:90px;}
+  .step-dot{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);background:var(--surface);transition:all .2s;position:relative;z-index:1;}
+  .step-label{font-size:10px;font-weight:500;color:var(--muted);text-align:center;line-height:1.3;}
+  .step-node.done .step-dot{border-color:var(--green);background:var(--green);color:#fff;}
+  .step-node.done .step-label{color:#4ade80;}
+  .step-node.active .step-dot{border-color:var(--accent);background:var(--accent);color:#fff;box-shadow:0 0 0 4px rgba(59,130,246,.2);}
+  .step-node.active .step-label{color:#60a5fa;font-weight:700;}
+  .step-node.rejected-state .step-dot{border-color:var(--red);background:var(--red);color:#fff;}
+  .step-node.rejected-state .step-label{color:#f87171;}
+  .step-line{flex:1;height:2px;background:var(--border);min-width:20px;margin-top:-16px;}
+  .step-line.done{background:var(--green);}
 
-  /* Toast */
-  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; font-size: 13px; z-index: 999; transform: translateY(80px); opacity: 0; transition: all .3s; }
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.success { border-color: rgba(34,197,94,.4); color: #4ade80; }
-  .toast.error { border-color: rgba(239,68,68,.4); color: #f87171; }
+  /* Tab nav */
+  .tab-nav{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px;overflow-x:auto;}
+  .tab-btn{padding:10px 18px;font-size:13px;font-weight:500;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap;font-family:inherit;display:flex;align-items:center;gap:6px;}
+  .tab-btn:hover{color:var(--text);}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .tab-count{font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:1px 6px;font-weight:600;}
+  .tab-btn.active .tab-count{background:rgba(59,130,246,.15);border-color:rgba(59,130,246,.3);color:#60a5fa;}
 
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; }
-  .overlay.open { display: block; }
+  /* Tab panels */
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
 
-  @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,.5); }
-    .main { margin-left: 0; }
-    .menu-toggle { display: block; }
-    .topbar { padding: 12px 16px; }
-    .content { padding: 16px; max-width: 100%; }
-    .project-stats { grid-template-columns: 1fr 1fr; }
-    .detail-grid { grid-template-columns: 1fr; }
-    .form-grid { grid-template-columns: 1fr; }
-    .project-header-top { flex-direction: column; align-items: flex-start; }
-  }
-  @media (max-width: 420px) {
-    .project-stats { grid-template-columns: 1fr; }
+  /* Form */
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;}
+  .card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .card-title{font-size:13px;font-weight:700;}
+  .card-body{padding:20px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .form-group{display:flex;flex-direction:column;gap:6px;}
+  .form-group.full{grid-column:1/-1;}
+  .form-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+  .form-control{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:9px 12px;font-size:13px;outline:none;font-family:inherit;transition:border-color .15s;width:100%;}
+  .form-control:focus{border-color:var(--accent);}
+  .form-control::placeholder{color:var(--muted);}
+  textarea.form-control{resize:vertical;min-height:90px;line-height:1.6;}
+  .section-sep{grid-column:1/-1;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;padding-bottom:8px;border-bottom:1px solid var(--border);margin-top:4px;}
+  .save-bar{display:flex;align-items:center;gap:10px;margin-top:20px;}
+
+  /* Lead banner */
+  .lead-banner{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);border-radius:8px;padding:12px 16px;font-size:13px;display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+  .lead-banner a{color:#60a5fa;text-decoration:none;font-weight:600;}
+  .lead-banner a:hover{text-decoration:underline;}
+
+  /* Placeholder tab */
+  .placeholder-tab{text-align:center;padding:60px 20px;}
+  .placeholder-tab .icon-wrap{width:64px;height:64px;border-radius:16px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;opacity:.7;}
+  .placeholder-tab h3{font-size:16px;font-weight:600;margin-bottom:6px;}
+  .placeholder-tab p{font-size:13px;color:var(--muted);margin-bottom:24px;max-width:360px;margin-left:auto;margin-right:auto;line-height:1.6;}
+  .coming-soon-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;margin-bottom:16px;}
+
+  /* Status quick change */
+  .status-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .status-select-wrap{display:flex;align-items:center;gap:8px;font-size:13px;}
+
+  /* Badges */
+  .badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .badge-survey_pending{background:rgba(148,163,184,.12);color:var(--muted);border:1px solid rgba(148,163,184,.2);}
+  .badge-survey_done   {background:rgba(59,130,246,.15);color:#60a5fa;}
+  .badge-boq_draft     {background:rgba(234,179,8,.15);color:#facc15;}
+  .badge-proposal_sent {background:rgba(168,85,247,.15);color:#c084fc;}
+  .badge-accepted      {background:rgba(34,197,94,.15);color:#4ade80;}
+  .badge-rejected      {background:rgba(239,68,68,.15);color:#f87171;}
+  .badge-execution     {background:rgba(249,115,22,.15);color:#fb923c;}
+  .badge-completed     {background:rgba(20,184,166,.15);color:#2dd4bf;}
+
+  /* Delete confirm */
+  .danger-zone{background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .danger-zone-text{font-size:13px;color:var(--muted);}
+  .danger-zone-text strong{color:#f87171;display:block;font-size:13px;margin-bottom:2px;}
+
+  /* Toast & Spinner */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:12px 18px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s;max-width:320px;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.success{border-color:rgba(34,197,94,.4);color:#4ade80;}
+  .toast.error{border-color:rgba(239,68,68,.4);color:#f87171;}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Mobile overlay */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;}
+  .overlay.open{display:block;}
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.5);}
+    .main{margin-left:0;}
+    .menu-toggle{display:block;}
+    .topbar{padding:10px 14px;}
+    .content{padding:16px;}
+    .form-grid{grid-template-columns:1fr;}
+    .ph-meta{gap:12px;}
+    .stepper{padding:12px 0 4px;}
+    .step-node{min-width:70px;}
+    .step-label{font-size:9px;}
   }
 </style>
 </head>
 <body>
 
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <div class="brand">A.G.R Automation</div>
-    <div class="tagline">BOQ Management System</div>
-  </div>
+  <div class="sidebar-logo"><div class="brand">A.G.R Automation</div><div class="tagline">BOQ Management System</div></div>
   <nav class="sidebar-nav">
     <div class="nav-section">Main</div>
-    <a href="dashboard.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Dashboard
-    </a>
-    <a href="quotes.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Quotes
-    </a>
-    <a href="clients.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Clients
-    </a>
+    <a href="dashboard.html" class="nav-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dashboard</a>
+    <a href="leads.html" class="nav-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>Leads</a>
+    <a href="quotes.html" class="nav-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Quotes</a>
+    <a href="clients.html" class="nav-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clients</a>
     <div class="nav-section">Work</div>
-    <a href="projects.html" class="nav-link active">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      Projects
-    </a>
-    <a href="analytics.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Analytics
-    </a>
+    <a href="boq.html" class="nav-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>BOQ System</a>
+    <a href="projects.html" class="nav-link active"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Projects</a>
+    <a href="analytics.html" class="nav-link"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Analytics</a>
     <div class="nav-section" id="admin-section" style="display:none">Admin</div>
-    <a href="users.html" class="nav-link" id="users-link" style="display:none">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Users
-    </a>
+    <a href="users.html" class="nav-link" id="users-link" style="display:none"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Users</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-pill">
       <div class="user-avatar" id="avatar">?</div>
-      <div class="user-info">
-        <div class="user-name" id="user-name">Loading…</div>
-        <div class="user-role" id="user-role"></div>
-      </div>
-      <button class="logout-btn" onclick="logout()" title="Logout">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
+      <div class="user-info"><div class="user-name" id="user-name">Loading…</div><div class="user-role" id="user-role"></div></div>
+      <button class="logout-btn" onclick="doLogout()" title="Logout"><svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
     </div>
   </div>
 </aside>
-
 <div class="overlay" id="mob-overlay" onclick="closeSidebar()"></div>
 
 <div class="main">
-  <header class="topbar">
-    <button class="menu-toggle" onclick="toggleSidebar()">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <span class="topbar-title" id="page-title">Project Detail</span>
-    <div class="topbar-actions">
-      <button class="btn btn-ghost" id="edit-btn" onclick="enterEdit()" style="font-size:12px;padding:7px 13px;">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Edit
-      </button>
-      <button class="btn btn-danger" onclick="confirmDelete()" style="font-size:12px;padding:7px 13px;">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-        Delete
-      </button>
+  <div class="topbar">
+    <button class="menu-toggle" onclick="toggleSidebar()"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+    <a href="projects.html" class="back-link">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Projects
+    </a>
+    <div class="breadcrumb">
+      <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+      <span id="bc-name">Loading…</span>
     </div>
-  </header>
-
-  <div class="content" id="content">
-    <div class="loading"><span class="spinner"></span>Loading project…</div>
+    <div class="topbar-right">
+      <span id="header-badge"></span>
+    </div>
   </div>
-</div>
 
-<!-- Confirm Delete -->
-<div class="confirm-bg" id="confirm-modal">
-  <div class="confirm-box">
-    <div class="confirm-title">Delete Project?</div>
-    <div class="confirm-text">This action cannot be undone. The project will be permanently removed.</div>
-    <div class="confirm-actions">
-      <button class="btn btn-ghost" onclick="closeConfirm()">Cancel</button>
-      <button class="btn btn-danger" onclick="deleteProject()">Delete</button>
-    </div>
+  <div class="content" id="main-content">
+    <div style="padding:48px;text-align:center;color:var(--muted);font-size:13px">Loading project…</div>
   </div>
 </div>
 
@@ -230,244 +218,356 @@
 <script>
 const API = 'https://agr-boq-backend.agrayush98.workers.dev';
 let project = null;
-const projectId = new URLSearchParams(location.search).get('id');
+let projectId = null;
 
-function getSession() { return localStorage.getItem('sessionId'); }
-function getUser() { try { return JSON.parse(localStorage.getItem('agr_user') || 'null'); } catch { return null; } }
+function getSession(){ return localStorage.getItem('sessionId'); }
+function getUser(){ try{ return JSON.parse(localStorage.getItem('agr_user')||'null'); }catch{ return null; } }
+function ah(){ return {'X-Session-ID':getSession()}; }
+function jh(){ return {'Content-Type':'application/json','X-Session-ID':getSession()}; }
+function esc(s){ return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
+function fmt(n){ return n?'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:0}):'—'; }
+function fmtDate(d){ return d?new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}):'—'; }
+function daysActive(d){ return d?Math.floor((Date.now()-new Date(d))/86400000):0; }
 
-async function logout() {
-  await fetch(`${API}/api/auth/logout`, { method: 'POST', headers: { 'X-Session-ID': getSession() } }).catch(() => {});
-  localStorage.clear();
-  location.href = 'login.html';
-}
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('mob-overlay').classList.toggle('open');
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('mob-overlay').classList.remove('open');
-}
-function toast(msg, type = 'success') {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = `toast ${type} show`;
-  setTimeout(() => el.classList.remove('show'), 3000);
-}
-function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'; }
+function toast(msg,type='success'){ const el=document.getElementById('toast'); el.textContent=msg; el.className=`toast ${type} show`; setTimeout(()=>el.classList.remove('show'),3500); }
+function toggleSidebar(){ document.getElementById('sidebar').classList.toggle('open'); document.getElementById('mob-overlay').classList.toggle('open'); }
+function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('mob-overlay').classList.remove('open'); }
 
-function statusBadge(s) {
-  const map = { active: 'badge-active', completed: 'badge-completed', 'on-hold': 'badge-on-hold', cancelled: 'badge-cancelled' };
-  const labels = { active: 'Active', completed: 'Completed', 'on-hold': 'On Hold', cancelled: 'Cancelled' };
-  return `<span class="badge ${map[s] || 'badge-active'}">${labels[s] || s}</span>`;
+const STATUS_LABELS={survey_pending:'Survey Pending',survey_done:'Survey Done',boq_draft:'BOQ Draft',proposal_sent:'Proposal Sent',accepted:'Accepted',rejected:'Rejected',execution:'In Execution',completed:'Completed'};
+const STATUS_STEPS=['survey_pending','survey_done','boq_draft','proposal_sent','accepted','execution','completed'];
+function statusBadge(s){ return `<span class="badge badge-${s}">${STATUS_LABELS[s]||s}</span>`; }
+
+function renderStepper(currentStatus){
+  if(currentStatus==='rejected'){
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+      <span class="badge badge-rejected" style="font-size:13px;padding:6px 14px">Rejected</span>
+      <span style="font-size:12px;color:var(--muted)">This project was rejected.</span>
+    </div>`;
+  }
+  const currentIdx = STATUS_STEPS.indexOf(currentStatus);
+  let html='<div class="stepper">';
+  STATUS_STEPS.forEach((s,i)=>{
+    const isDone = i < currentIdx;
+    const isActive = i === currentIdx;
+    const cls = isDone?'done':isActive?'active':'';
+    const icon = isDone
+      ? `<svg width="12" height="12" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`
+      : `${i+1}`;
+    if(i>0) html+=`<div class="step-line${isDone?' done':''}"></div>`;
+    html+=`<div class="step-node ${cls}"><div class="step-dot">${icon}</div><div class="step-label">${STATUS_LABELS[s]}</div></div>`;
+  });
+  html+='</div>';
+  return html;
 }
 
-function renderView() {
+function renderPage(){
   const p = project;
-  document.getElementById('page-title').textContent = p.name;
+  const days = daysActive(p.createdAt);
+  const c = p.counts||{};
 
-  const daysActive = p.startDate
-    ? Math.floor((Date.now() - new Date(p.startDate)) / 86400000)
-    : null;
+  document.getElementById('bc-name').textContent = p.projectName;
+  document.getElementById('header-badge').innerHTML = statusBadge(p.status);
+  document.title = `${p.projectName} — A.G.R`;
 
-  document.getElementById('content').innerHTML = `
-    <a href="projects.html" class="back-link">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      All Projects
-    </a>
-
+  document.getElementById('main-content').innerHTML = `
+    <!-- Project Header -->
     <div class="project-header">
-      <div class="project-header-top">
-        <div>
-          <div class="project-title">${p.name}</div>
-          <div class="project-client">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            ${p.clientName}
-          </div>
+      <div class="ph-top">
+        <div class="ph-icon">
+          <svg width="22" height="22" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         </div>
-        ${statusBadge(p.status)}
-      </div>
-      <div class="project-stats">
-        <div class="p-stat">
-          <div class="p-stat-label">Project Value</div>
-          <div class="p-stat-value">${p.totalValue ? fmt(p.totalValue) : '—'}</div>
-        </div>
-        <div class="p-stat">
-          <div class="p-stat-label">Start Date</div>
-          <div class="p-stat-value" style="font-size:15px;font-weight:600">${fmtDate(p.startDate)}</div>
-        </div>
-        <div class="p-stat">
-          <div class="p-stat-label">${p.status === 'completed' ? 'End Date' : 'Days Active'}</div>
-          <div class="p-stat-value" style="font-size:15px;font-weight:600">${p.status === 'completed' ? fmtDate(p.endDate) : (daysActive !== null ? daysActive + 'd' : '—')}</div>
+        <div class="ph-info">
+          <div class="ph-name">${esc(p.projectName)}</div>
+          <div class="ph-client">${esc(p.clientName)}${p.location?` · ${esc(p.location)}`:''}</div>
         </div>
       </div>
+      <div class="ph-meta">
+        ${p.budget?`<div class="ph-meta-item"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>${fmt(p.budget)}</div>`:''}
+        ${p.projectType?`<div class="ph-meta-item"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>${esc(p.projectType)}</div>`:''}
+        ${p.assignedTo?`<div class="ph-meta-item"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${esc(p.assignedTo)}</div>`:''}
+        <div class="ph-meta-item"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${days===0?'Created today':`${days} days active`}</div>
+        <div class="ph-meta-item">Created ${fmtDate(p.createdAt)}</div>
+      </div>
+      ${renderStepper(p.status)}
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Project Details</span>
-      </div>
-      <div class="card-body">
-        <div class="detail-grid">
-          <div class="detail-item">
-            <div class="detail-label">Status</div>
-            <div class="detail-value">${statusBadge(p.status)}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">End Date</div>
-            <div class="detail-value">${fmtDate(p.endDate)}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Created</div>
-            <div class="detail-value">${fmtDate(p.createdAt)}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Last Updated</div>
-            <div class="detail-value">${fmtDate(p.updatedAt)}</div>
-          </div>
-          ${p.description ? `<div class="detail-item full">
-            <div class="detail-label">Description</div>
-            <div class="detail-value" style="white-space:pre-wrap">${p.description}</div>
-          </div>` : ''}
-          ${p.notes ? `<div class="detail-item full">
-            <div class="detail-label">Notes</div>
-            <div class="detail-value" style="white-space:pre-wrap;color:var(--muted)">${p.notes}</div>
-          </div>` : ''}
-        </div>
-      </div>
+    <!-- Tabs -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="showTab('overview',this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Overview
+      </button>
+      <button class="tab-btn" onclick="showTab('survey',this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        Site Survey
+        <span class="tab-count">${c.surveys||0}</span>
+      </button>
+      <button class="tab-btn" onclick="showTab('boq',this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        BOQ
+        <span class="tab-count">${c.boqs||0}</span>
+      </button>
+      <button class="tab-btn" onclick="showTab('proposal',this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 0h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 7.91a16 16 0 0 0 6.1 6.1l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+        Proposal
+        <span class="tab-count">${c.proposals||0}</span>
+      </button>
+      <button class="tab-btn" onclick="showTab('payments',this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Payments
+        <span class="tab-count">${c.payments||0}</span>
+      </button>
+      <button class="tab-btn" onclick="showTab('tasks',this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Tasks
+        <span class="tab-count">${c.tasks||0}</span>
+      </button>
     </div>
-  `;
-}
 
-function enterEdit() {
-  const p = project;
-  document.getElementById('content').innerHTML = `
-    <a href="projects.html" class="back-link">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      All Projects
-    </a>
-    <div class="card">
-      <div class="card-header"><span class="card-title">Edit Project</span></div>
-      <div class="card-body">
-        <form id="edit-form" onsubmit="saveEdit(event)">
+    <!-- Overview Tab -->
+    <div class="tab-panel active" id="tab-overview">
+      ${p.leadId?`<div class="lead-banner">
+        <svg width="14" height="14" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>
+        Converted from lead: <a href="leads.html">${esc(p.leadName||'#'+p.leadId)}</a>
+      </div>`:''}
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Project Information</span>
+          <div class="status-row">
+            <span style="font-size:12px;color:var(--muted)">Status:</span>
+            <select class="form-control" id="status-select" style="padding:5px 10px;font-size:12px;width:auto" onchange="quickUpdateStatus()">
+              ${Object.entries(STATUS_LABELS).map(([v,l])=>`<option value="${v}"${p.status===v?' selected':''}>${l}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
           <div class="form-grid">
+            <div class="section-sep">Project Details</div>
             <div class="form-group full">
               <label class="form-label">Project Name *</label>
-              <input class="form-control" id="e-name" value="${escHtml(p.name)}" required>
-            </div>
-            <div class="form-group full">
-              <label class="form-label">Client Name *</label>
-              <input class="form-control" id="e-client" value="${escHtml(p.clientName)}" required>
+              <input class="form-control" id="e-projectName" value="${esc(p.projectName)}">
             </div>
             <div class="form-group">
-              <label class="form-label">Status</label>
-              <select class="form-control" id="e-status">
-                <option value="active" ${p.status === 'active' ? 'selected' : ''}>Active</option>
-                <option value="on-hold" ${p.status === 'on-hold' ? 'selected' : ''}>On Hold</option>
-                <option value="completed" ${p.status === 'completed' ? 'selected' : ''}>Completed</option>
-                <option value="cancelled" ${p.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+              <label class="form-label">Project Type</label>
+              <select class="form-control" id="e-projectType">
+                <option value="">— Select —</option>
+                ${['Home Automation','Office Automation','CCTV / Security','Networking','AV / Home Theatre','Smart Lighting','Access Control','Other'].map(t=>`<option${p.projectType===t?' selected':''}>${t}</option>`).join('')}
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Total Value (₹)</label>
-              <input class="form-control" id="e-value" type="number" min="0" step="1000" value="${p.totalValue || ''}">
+              <label class="form-label">Budget (₹)</label>
+              <input class="form-control" id="e-budget" type="number" min="0" step="10000" value="${p.budget||''}">
             </div>
             <div class="form-group">
-              <label class="form-label">Start Date</label>
-              <input class="form-control" id="e-start" type="date" value="${p.startDate ? p.startDate.split('T')[0] : ''}">
+              <label class="form-label">Assigned To</label>
+              <select class="form-control" id="e-assignedTo">
+                <option value="">— Unassigned —</option>
+              </select>
             </div>
             <div class="form-group">
-              <label class="form-label">End Date</label>
-              <input class="form-control" id="e-end" type="date" value="${p.endDate ? p.endDate.split('T')[0] : ''}">
+              <label class="form-label">Location</label>
+              <input class="form-control" id="e-location" value="${esc(p.location||'')}">
             </div>
-            <div class="form-group full">
-              <label class="form-label">Description</label>
-              <textarea class="form-control" id="e-desc">${escHtml(p.description || '')}</textarea>
+            <div class="section-sep">Client Details</div>
+            <div class="form-group">
+              <label class="form-label">Client Name *</label>
+              <input class="form-control" id="e-clientName" value="${esc(p.clientName)}">
             </div>
+            <div class="form-group">
+              <label class="form-label">Contact</label>
+              <input class="form-control" id="e-clientContact" value="${esc(p.clientContact||'')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-control" id="e-clientEmail" type="email" value="${esc(p.clientEmail||'')}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">GSTIN</label>
+              <input class="form-control" id="e-clientGSTIN" value="${esc(p.clientGSTIN||'')}" style="text-transform:uppercase">
+            </div>
+            <div class="section-sep">Notes</div>
             <div class="form-group full">
-              <label class="form-label">Notes</label>
-              <textarea class="form-control" id="e-notes">${escHtml(p.notes || '')}</textarea>
+              <label class="form-label">Internal Notes</label>
+              <textarea class="form-control" id="e-notes">${esc(p.notes||'')}</textarea>
             </div>
           </div>
-          <div class="form-actions">
-            <button type="button" class="btn btn-ghost" onclick="renderView()">Cancel</button>
-            <button type="submit" class="btn btn-primary" id="save-btn">Save Changes</button>
+          <div class="save-bar">
+            <button class="btn btn-primary" id="save-btn" onclick="saveProject()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Changes
+            </button>
+            <span id="save-msg" style="font-size:12px;display:none"></span>
           </div>
-        </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">Danger Zone</span></div>
+        <div class="card-body">
+          <div class="danger-zone">
+            <div class="danger-zone-text">
+              <strong>Delete Project</strong>
+              Permanently removes this project and all linked data. Cannot be undone.
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="deleteProject()">Delete Project</button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Site Survey Tab -->
+    <div class="tab-panel" id="tab-survey">
+      ${tabPlaceholder('survey','Site Survey','Schedule and conduct the site survey to measure rooms, document requirements, and capture photos.',
+        'Survey Pending','survey','M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 10m-3 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0',c.surveys)}
+    </div>
+
+    <!-- BOQ Tab -->
+    <div class="tab-panel" id="tab-boq">
+      ${tabPlaceholder('boq','BOQ Creation','Generate a Bill of Quantities using AI or create one manually based on the site survey.',
+        'Create BOQ','boq','M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8',c.boqs,
+        `<a href="boq.html" class="btn btn-primary btn-sm" style="margin-top:16px">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Open BOQ Generator
+        </a>`)}
+    </div>
+
+    <!-- Proposal Tab -->
+    <div class="tab-panel" id="tab-proposal">
+      ${tabPlaceholder('proposal','Client Proposal','Send the approved BOQ to the client as a Zoho Books estimate and track their response.',
+        'Create Proposal','proposal','M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 0h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 7.91a16 16 0 0 0 6.1 6.1l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z',c.proposals)}
+    </div>
+
+    <!-- Payments Tab -->
+    <div class="tab-panel" id="tab-payments">
+      ${tabPlaceholder('payments','Payment Milestones','Track advance payment, milestone payments, and final settlement.',
+        'Add Payment','payments','M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',c.payments)}
+    </div>
+
+    <!-- Tasks Tab -->
+    <div class="tab-panel" id="tab-tasks">
+      ${tabPlaceholder('tasks','Execution Tasks','Break down the installation work into tasks and assign them to team members.',
+        'Add Task','tasks','M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',c.tasks)}
+    </div>
   `;
-}
 
-function escHtml(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-async function saveEdit(e) {
-  e.preventDefault();
-  const btn = document.getElementById('save-btn');
-  btn.textContent = 'Saving…';
-  btn.disabled = true;
-
-  const body = {
-    name: document.getElementById('e-name').value,
-    clientName: document.getElementById('e-client').value,
-    status: document.getElementById('e-status').value,
-    totalValue: parseFloat(document.getElementById('e-value').value) || 0,
-    startDate: document.getElementById('e-start').value || null,
-    endDate: document.getElementById('e-end').value || null,
-    description: document.getElementById('e-desc').value || null,
-    notes: document.getElementById('e-notes').value || null,
-  };
-
-  const res = await fetch(`${API}/api/projects/${projectId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
-    body: JSON.stringify(body)
-  });
-  const data = await res.json();
-
-  if (data.success) {
-    project = { ...project, ...body, updatedAt: new Date().toISOString() };
-    toast('Project updated!');
-    renderView();
-  } else {
-    btn.textContent = 'Save Changes';
-    btn.disabled = false;
-    toast(data.error || 'Failed to save', 'error');
+  // Populate assigned select
+  const sel=document.getElementById('e-assignedTo');
+  if(sel&&window._users){
+    window._users.forEach(u=>{
+      const o=document.createElement('option'); o.value=u.username; o.textContent=u.fullName||u.username;
+      if(p.assignedTo===u.username) o.selected=true;
+      sel.appendChild(o);
+    });
+    if(p.assignedTo) sel.value=p.assignedTo;
   }
 }
 
-function confirmDelete() { document.getElementById('confirm-modal').classList.add('open'); }
-function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); }
-
-async function deleteProject() {
-  closeConfirm();
-  await fetch(`${API}/api/projects/${projectId}`, { method: 'DELETE', headers: { 'X-Session-ID': getSession() } });
-  toast('Project deleted');
-  setTimeout(() => location.href = 'projects.html', 800);
+function tabPlaceholder(id, title, desc, btnLabel, iconId, iconPath, count, extraBtn=''){
+  if(count>0) return `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">${count} record(s) — full UI coming soon.</div>`;
+  return `<div class="placeholder-tab">
+    <div class="icon-wrap"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="${iconPath}"/></svg></div>
+    <div class="coming-soon-badge"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Coming Soon</div>
+    <h3>${title}</h3>
+    <p>${desc}</p>
+    ${extraBtn||`<button class="btn btn-ghost btn-sm" disabled>${btnLabel} — Coming Soon</button>`}
+  </div>`;
 }
 
-async function init() {
-  if (!getSession()) { location.href = 'login.html'; return; }
-  if (!projectId) { location.href = 'projects.html'; return; }
+function showTab(name, btn){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  btn.classList.add('active');
+}
 
-  const user = getUser();
-  if (user) {
-    document.getElementById('user-name').textContent = user.fullName || user.username;
-    document.getElementById('user-role').textContent = user.role;
-    document.getElementById('avatar').textContent = (user.fullName || user.username || '?')[0].toUpperCase();
-    if (user.role === 'admin') {
-      document.getElementById('admin-section').style.display = '';
-      document.getElementById('users-link').style.display = '';
+async function quickUpdateStatus(){
+  const newStatus=document.getElementById('status-select').value;
+  try{
+    await fetch(`${API}/api/projects/${projectId}`,{method:'PUT',headers:jh(),body:JSON.stringify({status:newStatus})});
+    project.status=newStatus;
+    document.getElementById('header-badge').innerHTML=statusBadge(newStatus);
+    // Re-render stepper
+    const stepperEl=document.querySelector('.stepper')||document.querySelector('[class^="stepper"]');
+    const phHeader=document.querySelector('.project-header');
+    if(phHeader){
+      const existing=phHeader.querySelector('.stepper');
+      if(existing) existing.outerHTML=renderStepper(newStatus);
     }
-  }
-
-  const res = await fetch(`${API}/api/projects/${projectId}`, { headers: { 'X-Session-ID': getSession() } });
-  if (!res.ok) { document.getElementById('content').innerHTML = '<div class="loading">Project not found</div>'; return; }
-  project = await res.json();
-  renderView();
+    toast(`Status updated to "${STATUS_LABELS[newStatus]}"`);
+  }catch{ toast('Status update failed','error'); }
 }
 
+async function saveProject(){
+  const pn=document.getElementById('e-projectName').value.trim();
+  const cn=document.getElementById('e-clientName').value.trim();
+  if(!pn||!cn){ toast('Project Name and Client Name are required','error'); return; }
+  const btn=document.getElementById('save-btn');
+  btn.disabled=true; btn.innerHTML='<span class="spinner"></span> Saving…';
+  try{
+    const res=await fetch(`${API}/api/projects/${projectId}`,{method:'PUT',headers:jh(),body:JSON.stringify({
+      projectName:   pn,
+      clientName:    cn,
+      clientContact: document.getElementById('e-clientContact').value.trim()||null,
+      clientEmail:   document.getElementById('e-clientEmail').value.trim()||null,
+      clientGSTIN:   document.getElementById('e-clientGSTIN').value.trim().toUpperCase()||null,
+      location:      document.getElementById('e-location').value.trim()||null,
+      projectType:   document.getElementById('e-projectType').value||null,
+      budget:        parseFloat(document.getElementById('e-budget').value)||null,
+      assignedTo:    document.getElementById('e-assignedTo').value||null,
+      notes:         document.getElementById('e-notes').value.trim()||null,
+    })}).then(r=>r.json());
+    if(!res.success) throw new Error(res.error||'Save failed');
+    project.projectName=pn; project.clientName=cn;
+    document.getElementById('bc-name').textContent=pn;
+    document.title=`${pn} — A.G.R`;
+    const msg=document.getElementById('save-msg'); msg.textContent='Saved!'; msg.style.color='#4ade80'; msg.style.display='';
+    setTimeout(()=>msg.style.display='none',2500);
+    toast('Project saved');
+  }catch(e){ toast(e.message||'Save failed','error'); }
+  finally{ btn.disabled=false; btn.innerHTML='<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Changes'; }
+}
+
+async function deleteProject(){
+  if(!confirm(`Delete project "${project?.projectName}"? This cannot be undone.`)) return;
+  try{
+    await fetch(`${API}/api/projects/${projectId}`,{method:'DELETE',headers:ah()});
+    toast('Project deleted');
+    setTimeout(()=>location.href='projects.html',1000);
+  }catch{ toast('Delete failed','error'); }
+}
+
+async function doLogout(){
+  await fetch(`${API}/api/auth/logout`,{method:'POST',headers:ah()}).catch(()=>{});
+  localStorage.removeItem('sessionId'); localStorage.removeItem('agr_user'); location.href='login.html';
+}
+
+async function init(){
+  if(!getSession()){ location.href='login.html'; return; }
+  const user=getUser();
+  if(user){
+    document.getElementById('user-name').textContent=user.fullName||user.username;
+    document.getElementById('user-role').textContent=user.role;
+    document.getElementById('avatar').textContent=(user.fullName||user.username||'?')[0].toUpperCase();
+    if(user.role==='admin'){ document.getElementById('admin-section').style.display=''; document.getElementById('users-link').style.display=''; }
+  }
+
+  projectId=new URLSearchParams(location.search).get('id');
+  if(!projectId){ document.getElementById('main-content').innerHTML='<div style="padding:40px;text-align:center;color:#f87171">No project ID specified.</div>'; return; }
+
+  try{
+    const [pData, uData] = await Promise.all([
+      fetch(`${API}/api/projects/${projectId}`,{headers:ah()}).then(r=>r.json()),
+      fetch(`${API}/api/auth/users`,{headers:ah()}).then(r=>r.json()).catch(()=>({users:[]}))
+    ]);
+    if(pData.error) throw new Error(pData.error);
+    project=pData;
+    window._users=uData.users||[];
+    renderPage();
+  }catch(e){
+    document.getElementById('main-content').innerHTML=`<div style="padding:40px;text-align:center;color:#f87171">${e.message||'Failed to load project'}</div>`;
+  }
+}
 init();
 </script>
 </body>
