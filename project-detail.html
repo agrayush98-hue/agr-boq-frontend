@@ -698,11 +698,58 @@ function renderProposalUI(){
 function renderProposalCard(p){
   let totals={};
   try{ totals=JSON.parse(p.boqTotals||'{}'); }catch{}
+  let items=[];
+  try{ items=JSON.parse(p.boqItemsJson||'[]'); }catch{}
   const grandTotal=totals.grandTotal||0;
   const isAccepted=p.status==='accepted';
   const isRejected=p.status==='rejected';
   const isResolved=isAccepted||isRejected;
   const cardClass=isAccepted?' accepted':isRejected?' rejected':'';
+
+  const boqPreview=items.length?`
+    <details style="margin-bottom:16px">
+      <summary style="cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;list-style:none;display:flex;align-items:center;gap:6px;user-select:none">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+        BOQ Preview — ${items.length} item${items.length!==1?'s':''}
+      </summary>
+      <div style="overflow-x:auto;margin-top:10px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead><tr style="background:var(--surface2)">
+            <th style="text-align:left;padding:6px 10px;color:var(--muted);font-weight:600">#</th>
+            <th style="text-align:left;padding:6px 10px;color:var(--muted);font-weight:600">Product</th>
+            <th style="text-align:center;padding:6px 10px;color:var(--muted);font-weight:600">Qty</th>
+            <th style="text-align:center;padding:6px 10px;color:var(--muted);font-weight:600">Unit</th>
+            <th style="text-align:right;padding:6px 10px;color:var(--muted);font-weight:600">Rate (₹)</th>
+            <th style="text-align:right;padding:6px 10px;color:var(--muted);font-weight:600">Total (₹)</th>
+          </tr></thead>
+          <tbody>
+            ${items.map((it,i)=>`<tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:6px 10px;color:var(--muted)">${i+1}</td>
+              <td style="padding:6px 10px">${esc(it.itemName||it.name||'—')}</td>
+              <td style="padding:6px 10px;text-align:center">${it.quantity||1}</td>
+              <td style="padding:6px 10px;text-align:center">${esc(it.unit||'pcs')}</td>
+              <td style="padding:6px 10px;text-align:right">${fmt(it.unitRate||0)}</td>
+              <td style="padding:6px 10px;text-align:right;font-weight:500">${fmt((it.quantity||1)*(it.unitRate||0))}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table>
+        <div style="display:flex;justify-content:flex-end;gap:24px;padding:10px 10px 2px;font-size:12px">
+          ${totals.discountAmount?`<span style="color:#f87171">Discount: –₹${fmt(totals.discountAmount)}</span>`:''}
+          ${totals.shipping?`<span>Shipping: ₹${fmt(totals.shipping)}</span>`:''}
+          ${totals.gst?`<span>GST (18%): ₹${fmt(totals.gst)}</span>`:''}
+          <span style="font-weight:700;color:var(--text)">Grand Total: ₹${fmt(grandTotal)}</span>
+        </div>
+      </div>
+    </details>`:'';
+
+  const paymentTermsSection=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Payment Terms</div>
+      ${isResolved
+        ? (p.paymentTerms?`<div style="font-size:13px;color:var(--text);white-space:pre-wrap">${esc(p.paymentTerms)}</div>`:`<div style="font-size:12px;color:var(--muted);font-style:italic">No payment terms recorded.</div>`)
+        : `<textarea class="form-control" id="prop-pt-${p.id}" rows="2" placeholder="e.g. 50% advance, 50% on completion…">${esc(p.paymentTerms||'')}</textarea>`
+      }
+    </div>`;
 
   return `<div class="prop-card${cardClass}" id="propc-${p.id}">
     <div class="prop-card-hd">
@@ -720,6 +767,9 @@ function renderProposalCard(p){
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         Open Estimate in Zoho Books
       </a>`:''}
+
+      ${boqPreview}
+      ${paymentTermsSection}
 
       ${isResolved
         ? `<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:8px;background:${isAccepted?'rgba(34,197,94,.08)':'rgba(239,68,68,.08)'};border:1px solid ${isAccepted?'rgba(34,197,94,.2)':'rgba(239,68,68,.2)'}">
@@ -753,9 +803,10 @@ async function saveProposalResponse(id){
   if(!selected){ toast('Select a response first','error'); return; }
   const clientResponse=selected.value;
   const remarks=document.getElementById(`prop-remarks-${id}`)?.value.trim()||'';
+  const paymentTerms=document.getElementById(`prop-pt-${id}`)?.value.trim()||null;
   try{
     const res=await fetch(`${API}/api/proposals/${id}/response`,{
-      method:'PUT',headers:jh(),body:JSON.stringify({clientResponse,remarks})
+      method:'PUT',headers:jh(),body:JSON.stringify({clientResponse,remarks,paymentTerms})
     }).then(r=>r.json());
     if(!res.success) throw new Error(res.error||'Failed');
     toast(`Response saved: ${clientResponse}`);
@@ -800,6 +851,11 @@ function openSendProposalModal(){
 
       <div id="prop-boq-select">${boqCards}</div>
 
+      <div class="form-group" style="margin-bottom:4px">
+        <label class="form-label">Payment Terms</label>
+        <textarea class="form-control" id="prop-payment-terms" rows="3" placeholder="e.g. 50% advance, 50% on completion. Payment due within 7 days of invoice."></textarea>
+      </div>
+
       <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);margin:16px 0">
         <svg width="12" height="12" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24" style="display:inline;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         This will create a Zoho Books estimate for <strong style="color:var(--text)">${esc(project?.clientName||'the client')}</strong> and advance the project status to "Proposal Sent".
@@ -834,7 +890,8 @@ async function confirmSendProposal(){
   document.getElementById('prop-boq-select').style.display='none';
   document.getElementById('prop-sending').style.display='';
   try{
-    const res=await fetch(`${API}/api/boqs/${boqId}/send-proposal`,{method:'POST',headers:jh()}).then(r=>r.json());
+    const paymentTerms=document.getElementById('prop-payment-terms')?.value.trim()||null;
+    const res=await fetch(`${API}/api/boqs/${boqId}/send-proposal`,{method:'POST',headers:jh(),body:JSON.stringify({paymentTerms})}).then(r=>r.json());
     if(!res.success) throw new Error(res.error||'Failed to send proposal');
     toast(`Proposal sent! Zoho Estimate: ${res.zohoEstimateNumber}`);
     project.status='proposal_sent';
