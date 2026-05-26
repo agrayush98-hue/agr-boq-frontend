@@ -1387,9 +1387,8 @@ function svStatusBadge(s){
 }
 
 function renderSurveyCard(sv, expanded=false){
-  let meas={};
-  try{ meas=JSON.parse(sv.measurements_json||'{}'); }catch{}
-  const rooms=Object.keys(meas);
+  let rooms=[];
+  try{ const p=JSON.parse(sv.measurements_json||'[]'); rooms=Array.isArray(p)?p:[]; }catch{}
   const photos=window._svPhotos[sv.id]||[];
   const plans =window._svPlans[sv.id]||[];
   const meta=[sv.surveyDate?fmtDate(sv.surveyDate):'Date TBD', sv.surveyorName||'Surveyor TBD'].join(' · ');
@@ -1409,16 +1408,17 @@ function renderSurveyCard(sv, expanded=false){
       <svg class="sv-arrow" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--muted);transition:transform .2s${expanded?';transform:rotate(180deg)':''}"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
     <div class="sv-card-bd">
-      ${renderSurveyBody(sv, meas)}
+      ${renderSurveyBody(sv, rooms)}
     </div>
   </div>`;
 }
 
-function renderSurveyBody(sv, meas){
+const ROOM_TYPES=['Living Room','Bedroom','Master Bedroom','Kitchen','Bathroom','Dining Room','Study/Office','Balcony','Corridor/Passage','Home Theatre','Server Room','Lobby','Common Area','Garage','Other'];
+
+function renderSurveyBody(sv, rooms){
   const photos=window._svPhotos[sv.id]||[];
   const plans =window._svPlans[sv.id]||[];
-  meas=meas||{};
-  const rooms=Object.keys(meas);
+  rooms=Array.isArray(rooms)?rooms:[];
 
   const photoGrid=photos.map((p,i)=>`<div class="file-thumb">
     <img src="${p.url}" alt="" onclick="previewImg('${p.url}')">
@@ -1434,14 +1434,15 @@ function renderSurveyBody(sv, meas){
     </div>`;
   }).join('');
 
-  const measRows=rooms.map(room=>{
-    const r=meas[room]||{};
+  const measRows=rooms.map((r,idx)=>{
+    const typeOpts=ROOM_TYPES.map(t=>`<option value="${t}"${r.roomType===t?' selected':''}>${t}</option>`).join('');
     return `<tr>
-      <td><input value="${esc(room)}" data-field="name" data-orig="${esc(room)}" onchange="updateMeasName(${sv.id},this)"></td>
-      <td><input type="number" step="0.1" min="0" value="${r.length||''}" data-room="${esc(room)}" data-field="length"></td>
-      <td><input type="number" step="0.1" min="0" value="${r.width||''}" data-room="${esc(room)}" data-field="width"></td>
-      <td><input type="number" step="0.1" min="0" value="${r.height||''}" data-room="${esc(room)}" data-field="height"></td>
-      <td><button class="btn btn-danger btn-sm" style="padding:3px 8px" onclick="removeMeasRow(${sv.id},'${room.replace(/'/g,"\\'")}')">✕</button></td>
+      <td><input class="form-control" value="${esc(r.roomName||'')}" data-field="roomName" placeholder="e.g. Living Room" style="min-width:110px"></td>
+      <td><select class="form-control" data-field="roomType" style="min-width:140px"><option value="">Select type</option>${typeOpts}</select></td>
+      <td><input type="number" min="0" value="${r.panelCount||''}" data-field="panelCount" placeholder="0" style="width:65px;text-align:center"></td>
+      <td><input type="number" min="0" value="${r.lightCount||''}" data-field="lightCount" placeholder="0" style="width:65px;text-align:center"></td>
+      <td><input class="form-control" value="${esc(r.notes||'')}" data-field="roomNotes" placeholder="Optional" style="min-width:130px"></td>
+      <td><button class="btn btn-danger btn-sm" style="padding:3px 8px" onclick="this.closest('tr').remove()">✕</button></td>
     </tr>`;
   }).join('');
 
@@ -1496,14 +1497,16 @@ function renderSurveyBody(sv, meas){
 
     <div class="sv-section">
       <div class="sv-section-title">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        Measurements
-        <span style="font-size:10px;color:var(--muted);font-weight:400">(metres)</span>
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        Room Details
+        <span style="font-size:10px;color:var(--muted);font-weight:400">(panels, lights &amp; type per room)</span>
       </div>
-      <table class="meas-table">
-        <thead><tr><th>Room / Area</th><th>Length</th><th>Width</th><th>Height</th><th></th></tr></thead>
-        <tbody id="meas-body-${sv.id}">${measRows}</tbody>
-      </table>
+      <div style="overflow-x:auto">
+        <table class="meas-table" style="min-width:680px">
+          <thead><tr><th>Room / Area</th><th>Room Type</th><th>Panels</th><th>Lights</th><th>Notes</th><th></th></tr></thead>
+          <tbody id="meas-body-${sv.id}">${measRows}</tbody>
+        </table>
+      </div>
       <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="addMeasRow(${sv.id})">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Add Room
@@ -1657,48 +1660,33 @@ function removePlan(id,idx){  const a=window._svPlans[id]||[];  a.splice(idx,1);
 
 function addMeasRow(id){
   const tbody=document.getElementById(`meas-body-${id}`); if(!tbody) return;
-  const n=tbody.querySelectorAll('tr').length;
-  const name=`Room ${n+1}`;
+  const typeOpts=ROOM_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('');
   const tr=document.createElement('tr');
   tr.innerHTML=`
-    <td><input value="${esc(name)}" data-field="name" data-orig="${esc(name)}" onchange="updateMeasName(${id},this)"></td>
-    <td><input type="number" step="0.1" min="0" value="" data-room="${esc(name)}" data-field="length"></td>
-    <td><input type="number" step="0.1" min="0" value="" data-room="${esc(name)}" data-field="width"></td>
-    <td><input type="number" step="0.1" min="0" value="" data-room="${esc(name)}" data-field="height"></td>
-    <td><button class="btn btn-danger btn-sm" style="padding:3px 8px" onclick="removeMeasRow(${id},'${esc(name)}')">✕</button></td>`;
+    <td><input class="form-control" value="" data-field="roomName" placeholder="e.g. Living Room" style="min-width:110px"></td>
+    <td><select class="form-control" data-field="roomType" style="min-width:140px"><option value="">Select type</option>${typeOpts}</select></td>
+    <td><input type="number" min="0" value="" data-field="panelCount" placeholder="0" style="width:65px;text-align:center"></td>
+    <td><input type="number" min="0" value="" data-field="lightCount" placeholder="0" style="width:65px;text-align:center"></td>
+    <td><input class="form-control" value="" data-field="roomNotes" placeholder="Optional" style="min-width:130px"></td>
+    <td><button class="btn btn-danger btn-sm" style="padding:3px 8px" onclick="this.closest('tr').remove()">✕</button></td>`;
   tbody.appendChild(tr);
 }
 
-function removeMeasRow(id, roomName){
-  const tbody=document.getElementById(`meas-body-${id}`); if(!tbody) return;
-  for(const row of tbody.querySelectorAll('tr')){
-    const inp=row.querySelector('input[data-field="name"]');
-    if(inp && inp.dataset.orig===roomName){ row.remove(); break; }
-  }
-}
-
-function updateMeasName(id, input){
-  const tr=input.closest('tr'); if(!tr) return;
-  const newName=input.value.trim()||'Room';
-  tr.querySelectorAll('input[data-field]').forEach(i=>{ if(i!==input) i.dataset.room=newName; });
-  input.dataset.orig=newName;
-  const del=tr.querySelector('button');
-  if(del) del.setAttribute('onclick',`removeMeasRow(${id},'${newName.replace(/'/g,"\\'")}') `);
-}
-
 function collectMeasurements(id){
-  const tbody=document.getElementById(`meas-body-${id}`); if(!tbody) return {};
-  const meas={};
+  const tbody=document.getElementById(`meas-body-${id}`); if(!tbody) return [];
+  const rooms=[];
   for(const row of tbody.querySelectorAll('tr')){
-    const name=(row.querySelector('input[data-field="name"]')?.value||'').trim();
-    if(!name) continue;
-    meas[name]={
-      length:parseFloat(row.querySelector('input[data-field="length"]')?.value)||null,
-      width: parseFloat(row.querySelector('input[data-field="width"]')?.value)||null,
-      height:parseFloat(row.querySelector('input[data-field="height"]')?.value)||null,
-    };
+    const roomName=(row.querySelector('input[data-field="roomName"]')?.value||'').trim();
+    if(!roomName) continue;
+    rooms.push({
+      roomName,
+      roomType:  (row.querySelector('select[data-field="roomType"]')?.value||'').trim(),
+      panelCount:parseInt(row.querySelector('input[data-field="panelCount"]')?.value)||0,
+      lightCount:parseInt(row.querySelector('input[data-field="lightCount"]')?.value)||0,
+      notes:     (row.querySelector('input[data-field="roomNotes"]')?.value||'').trim(),
+    });
   }
-  return meas;
+  return rooms;
 }
 
 async function saveSurvey(id){
