@@ -332,6 +332,36 @@
   .new-quote-btn { display: none; }
   .new-quote-btn.show { display: inline-flex; }
 
+  /* Client autocomplete */
+  .ac-wrap { position: relative; }
+  .ac-dropdown {
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 0; right: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    z-index: 50;
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+  }
+  .ac-dropdown.open { display: block; }
+  .ac-item { padding: 9px 12px; font-size: 13px; cursor: pointer; transition: background .1s; border-bottom: 1px solid rgba(255,255,255,.05); }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:hover { background: rgba(59,130,246,.15); }
+  .ac-item .ac-name { font-weight: 600; }
+  .ac-item .ac-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Post-save actions */
+  .post-save-card { display: none; }
+  .post-save-card.show { display: block; }
+  .ps-zoho-row { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+  .btn-zoho { background: #0f4c81; color: #fff; border: 1px solid #1a6fb5; }
+  .btn-zoho:hover:not(:disabled) { background: #1a6fb5; }
+  .btn-zoho:disabled { opacity: .6; cursor: not-allowed; }
+
   /* Inside iframe: hide topbar */
   body.in-iframe .page-topbar { display: none; }
   body.in-iframe .container { padding-top: 20px; }
@@ -399,8 +429,10 @@
       <div class="form-grid">
         <div class="form-group">
           <label class="form-label">Client Name *</label>
-          <input class="form-control" id="c-name" placeholder="e.g. Rajesh Sharma" required list="clients-dl">
-          <datalist id="clients-dl"></datalist>
+          <div class="ac-wrap">
+            <input class="form-control" id="c-name" placeholder="e.g. Rajesh Sharma" required autocomplete="off">
+            <div class="ac-dropdown" id="ac-dropdown"></div>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Phone / Contact</label>
@@ -522,6 +554,49 @@
         </div>
       </div>
     </div>
+  <!-- Post-save actions (shown after quote is saved) -->
+  <div class="card post-save-card" id="post-save-card">
+    <div class="card-header">
+      <span class="card-title">
+        <svg width="15" height="15" fill="none" stroke="#4ade80" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Quote Saved — Next Steps
+      </span>
+      <span id="ps-quote-num" style="font-size:12px;color:var(--muted);font-family:monospace"></span>
+    </div>
+    <div class="card-body">
+      <div class="ps-zoho-row">
+        <button class="btn btn-zoho" id="zoho-btn" onclick="sendToZoho()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+          Send to Zoho Books
+        </button>
+        <span id="zoho-msg" style="font-size:12px;color:#4ade80;display:none"></span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Update Status</label>
+          <select class="form-control" id="ps-status">
+            <option value="draft">Draft</option>
+            <option value="sent">Sent</option>
+            <option value="accepted">Accepted</option>
+            <option value="rejected">Rejected</option>
+            <option value="invoiced">Invoiced</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Remark / Notes</label>
+          <textarea class="form-control" id="ps-remark" placeholder="Add a note or remark about this quote…" style="min-height:80px"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button class="btn btn-success" id="sr-btn" onclick="saveStatusRemark()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Status & Remark
+        </button>
+        <span id="sr-msg" style="font-size:12px;display:none"></span>
+      </div>
+    </div>
+  </div>
+
   </div>
 
 </div>
@@ -545,6 +620,9 @@ if (!getSession() && window.self === window.top) {
 
 let generatedData = null;
 let quoteItems = [];
+let allClients = [];
+let dropdownMatches = [];
+let savedQuoteNumber = null;
 
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
@@ -733,8 +811,13 @@ async function saveQuote() {
     msg.textContent = `Saved as ${data.quoteNumber}`;
     msg.style.display = '';
 
+    savedQuoteNumber = data.quoteNumber;
+    document.getElementById('ps-quote-num').textContent = data.quoteNumber;
+    document.getElementById('post-save-card').classList.add('show');
+
     setStep(4);
     toast(`Quote ${data.quoteNumber} saved successfully!`);
+    document.getElementById('post-save-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   } catch (err) {
     toast(err.message || 'Save failed — please try again.', 'error');
@@ -746,6 +829,7 @@ async function saveQuote() {
 function resetAll() {
   generatedData = null;
   quoteItems = [];
+  savedQuoteNumber = null;
   document.getElementById('requirement').value = '';
   document.getElementById('s-discount') && (document.getElementById('s-discount').value = '');
   document.getElementById('s-notes') && (document.getElementById('s-notes').value = '');
@@ -758,22 +842,131 @@ function resetAll() {
   if (savedMsg) savedMsg.style.display = 'none';
   const genBtn = document.getElementById('generate-btn');
   genBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Generate BOQ with AI';
+  // Reset post-save card
+  document.getElementById('post-save-card').classList.remove('show');
+  document.getElementById('ps-remark').value = '';
+  document.getElementById('ps-status').value = 'draft';
+  const zohoBtn = document.getElementById('zoho-btn');
+  zohoBtn.disabled = false;
+  zohoBtn.style.background = '';
+  zohoBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> Send to Zoho Books';
+  document.getElementById('zoho-msg').style.display = 'none';
+  document.getElementById('sr-msg').style.display = 'none';
   setStep(1);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Load client suggestions
+// Client autocomplete
 async function loadClients() {
   try {
     const res = await fetch(`${API}/api/clients`, { headers: { 'X-Session-ID': getSession() } });
-    const clients = await res.json();
-    const dl = document.getElementById('clients-dl');
-    (Array.isArray(clients) ? clients : []).forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.name;
-      dl.appendChild(opt);
-    });
+    const data = await res.json();
+    allClients = Array.isArray(data) ? data : [];
   } catch {}
+
+  const input = document.getElementById('c-name');
+  const dropdown = document.getElementById('ac-dropdown');
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    const matches = q.length >= 1
+      ? allClients.filter(c => c.name.toLowerCase().includes(q)).slice(0, 10)
+      : allClients.slice(0, 8);
+    renderDropdown(matches);
+  });
+
+  input.addEventListener('focus', () => {
+    const q = input.value.trim().toLowerCase();
+    const matches = q.length >= 1
+      ? allClients.filter(c => c.name.toLowerCase().includes(q)).slice(0, 10)
+      : allClients.slice(0, 8);
+    if (matches.length) renderDropdown(matches);
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.ac-wrap')) dropdown.classList.remove('open');
+  });
+}
+
+function renderDropdown(matches) {
+  dropdownMatches = matches;
+  const dropdown = document.getElementById('ac-dropdown');
+  if (!matches.length) { dropdown.classList.remove('open'); return; }
+  dropdown.innerHTML = matches.map((c, i) => `
+    <div class="ac-item" onclick="selectClient(${i})">
+      <div class="ac-name">${c.name}</div>
+      ${(c.contact || c.city) ? `<div class="ac-detail">${[c.contact, c.city, c.state].filter(Boolean).join(' · ')}</div>` : ''}
+    </div>
+  `).join('');
+  dropdown.classList.add('open');
+}
+
+function selectClient(i) {
+  const c = dropdownMatches[i];
+  if (!c) return;
+  document.getElementById('c-name').value = c.name;
+  if (c.contact) document.getElementById('c-contact').value = c.contact;
+  if (c.email) document.getElementById('c-email').value = c.email;
+  if (c.gstin) document.getElementById('c-gstin').value = c.gstin.toUpperCase();
+  if (c.city) document.getElementById('c-city').value = c.city;
+  if (c.state) document.getElementById('c-state').value = c.state;
+  document.getElementById('ac-dropdown').classList.remove('open');
+}
+
+// Zoho + status/remark actions
+async function sendToZoho() {
+  if (!savedQuoteNumber) return;
+  const btn = document.getElementById('zoho-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sending…';
+  try {
+    const res = await fetch(`${API}/api/zoho-books/create-estimate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
+      body: JSON.stringify({ quoteId: savedQuoteNumber })
+    });
+    const data = await res.json();
+    if (data.estimate_id || data.success || data.estimate) {
+      btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Sent to Zoho';
+      btn.style.background = '#16a34a';
+      const msg = document.getElementById('zoho-msg');
+      msg.textContent = data.estimate_id ? `Estimate #${data.estimate_id}` : 'Created in Zoho Books';
+      msg.style.display = '';
+    } else {
+      throw new Error(data.error || 'Zoho sync failed');
+    }
+  } catch (e) {
+    toast(e.message || 'Zoho sync failed', 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg> Send to Zoho Books';
+  }
+}
+
+async function saveStatusRemark() {
+  if (!savedQuoteNumber) return;
+  const status = document.getElementById('ps-status').value;
+  const remark = document.getElementById('ps-remark').value.trim();
+  const btn = document.getElementById('sr-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+  try {
+    await fetch(`${API}/api/quotes/${savedQuoteNumber}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
+      body: JSON.stringify({ status, remark })
+    });
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Saved';
+    const msg = document.getElementById('sr-msg');
+    msg.textContent = `Status: ${status}`;
+    msg.style.color = '#4ade80';
+    msg.style.display = '';
+    toast(`Status set to "${status}"`, 'success');
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Status & Remark'; }, 2500);
+  } catch {
+    toast('Update failed', 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Status & Remark';
+  }
 }
 
 loadClients();

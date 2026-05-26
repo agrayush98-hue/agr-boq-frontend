@@ -120,6 +120,31 @@
   @media (max-width: 420px) {
     .stats-grid { grid-template-columns: 1fr; }
   }
+
+  /* Quote detail drawer */
+  .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 300; }
+  .drawer-backdrop.open { display: block; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: 500px; max-width: 100vw; background: var(--surface); border-left: 1px solid var(--border); z-index: 301; transform: translateX(100%); transition: transform .25s cubic-bezier(.4,0,.2,1); overflow-y: auto; display: flex; flex-direction: column; }
+  .drawer.open { transform: translateX(0); box-shadow: -8px 0 32px rgba(0,0,0,.4); }
+  .drawer-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; position: sticky; top: 0; background: var(--surface); z-index: 1; flex-shrink: 0; }
+  .drawer-title { font-size: 15px; font-weight: 700; flex: 1; font-family: monospace; color: var(--accent); }
+  .drawer-close { background: none; border: 1px solid var(--border); color: var(--muted); padding: 5px 12px; border-radius: 7px; cursor: pointer; font-size: 12px; font-family: inherit; transition: all .15s; }
+  .drawer-close:hover { background: var(--surface2); color: var(--text); }
+  .drawer-body { padding: 20px; flex: 1; }
+  .dr-section { margin-bottom: 20px; }
+  .dr-section-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .dr-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.04); }
+  .dr-row:last-child { border-bottom: none; }
+  .dr-label { color: var(--muted); flex-shrink: 0; }
+  .dr-value { font-weight: 500; text-align: right; max-width: 65%; word-break: break-word; }
+  .dr-items table { font-size: 12px; }
+  .dr-items th { font-size: 10px; padding: 7px 10px; }
+  .dr-items td { padding: 7px 10px; }
+  .dr-grand { display: flex; justify-content: space-between; align-items: center; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); border-radius: 8px; padding: 12px 16px; margin-top: 12px; }
+  .dr-grand .label { font-size: 14px; font-weight: 600; }
+  .dr-grand .amount { font-size: 20px; font-weight: 800; color: var(--accent); font-family: monospace; }
+  .dr-remark { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 13px; color: var(--text); line-height: 1.6; }
+  tr.clickable { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -237,6 +262,16 @@
   </div>
 </div>
 
+<!-- Quote detail drawer -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeQuoteDrawer()"></div>
+<div class="drawer" id="quote-drawer">
+  <div class="drawer-header">
+    <span class="drawer-title" id="drawer-title">Quote</span>
+    <button class="drawer-close" onclick="closeQuoteDrawer()">✕ Close</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
 <script>
 const API = 'https://agr-boq-backend.agrayush98.workers.dev';
 
@@ -286,7 +321,8 @@ function statusBadge(s) {
 
 async function loadStats(quotes) {
   const total = quotes.length;
-  const revenue = quotes.reduce((s, q) => s + (q.grandTotal || 0), 0);
+  const revenue = quotes.filter(q => q.status === 'accepted' || q.status === 'invoiced')
+                        .reduce((s, q) => s + (q.grandTotal || 0), 0);
   const pending = quotes.filter(q => q.status === 'draft' || q.status === 'sent').length;
   const accepted = quotes.filter(q => q.status === 'accepted' || q.status === 'invoiced').length;
 
@@ -340,15 +376,16 @@ async function init() {
   await loadStats(quotes);
 
   const recent = quotes.slice(0, 10);
+  window._dashQuotes = recent;
   const tbody = document.getElementById('quotes-tbody');
   if (!recent.length) {
     tbody.innerHTML = '<tr><td colspan="5" class="empty">No quotes yet</td></tr>';
     return;
   }
-  tbody.innerHTML = recent.map(q => {
+  tbody.innerHTML = recent.map((q, i) => {
     const client = typeof q.client === 'object' ? q.client : JSON.parse(q.client || '{}');
     const date = new Date(q.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
-    return `<tr>
+    return `<tr class="clickable" onclick="openQuoteDrawer(${i})">
       <td><span style="font-family:monospace;font-size:12px;color:var(--accent)">${q.quoteNumber}</span></td>
       <td>${client.name || '—'}</td>
       <td style="font-weight:600">${fmt(q.grandTotal)}</td>
@@ -356,6 +393,66 @@ async function init() {
       <td style="color:var(--muted)">${date}</td>
     </tr>`;
   }).join('');
+}
+
+function openQuoteDrawer(i) {
+  const q = window._dashQuotes[i];
+  if (!q) return;
+  const client = typeof q.client === 'object' ? q.client : JSON.parse(q.client || '{}');
+  const items = typeof q.items === 'string' ? JSON.parse(q.items || '[]') : (q.items || []);
+  const date = new Date(q.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
+
+  document.getElementById('drawer-title').textContent = q.quoteNumber;
+  document.getElementById('drawer-body').innerHTML = `
+    <div class="dr-section">
+      <div class="dr-section-title">Client</div>
+      <div class="dr-row"><span class="dr-label">Name</span><span class="dr-value">${client.name || '—'}</span></div>
+      ${client.contact ? `<div class="dr-row"><span class="dr-label">Contact</span><span class="dr-value">${client.contact}</span></div>` : ''}
+      ${client.email ? `<div class="dr-row"><span class="dr-label">Email</span><span class="dr-value">${client.email}</span></div>` : ''}
+      ${client.city ? `<div class="dr-row"><span class="dr-label">Location</span><span class="dr-value">${[client.city, client.state].filter(Boolean).join(', ')}</span></div>` : ''}
+      ${client.gstin ? `<div class="dr-row"><span class="dr-label">GSTIN</span><span class="dr-value" style="font-family:monospace;font-size:12px">${client.gstin}</span></div>` : ''}
+    </div>
+    ${items.length ? `
+    <div class="dr-section dr-items">
+      <div class="dr-section-title">Items (${items.length})</div>
+      <div class="table-wrap" style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <table>
+          <thead><tr><th>Product</th><th>Qty</th><th>Total</th></tr></thead>
+          <tbody>${items.map(it => `<tr>
+            <td style="max-width:200px">${it.itemName || it.name || ''}</td>
+            <td style="color:var(--muted)">${it.quantity}</td>
+            <td style="font-family:monospace">₹${fmt(it.quantity * (it.unitRate || it.rate || 0))}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>` : ''}
+    <div class="dr-section">
+      <div class="dr-section-title">Financials</div>
+      ${q.discount ? `<div class="dr-row"><span class="dr-label" style="color:#f87171">Discount</span><span class="dr-value" style="color:#f87171">– ₹${fmt(q.discount)}</span></div>` : ''}
+      <div class="dr-row"><span class="dr-label">GST (18%)</span><span class="dr-value">₹${fmt(q.totalGST)}</span></div>
+      <div class="dr-row"><span class="dr-label">Installation (10%)</span><span class="dr-value">₹${fmt(q.installation)}</span></div>
+      <div class="dr-row"><span class="dr-label">Commissioning (5%)</span><span class="dr-value">₹${fmt(q.commissioning)}</span></div>
+      <div class="dr-grand"><span class="label">Grand Total</span><span class="amount">₹${fmt(q.grandTotal)}</span></div>
+    </div>
+    <div class="dr-section">
+      <div class="dr-section-title">Details</div>
+      <div class="dr-row"><span class="dr-label">Status</span><span class="dr-value">${statusBadge(q.status)}</span></div>
+      <div class="dr-row"><span class="dr-label">Date</span><span class="dr-value">${date}</span></div>
+    </div>
+    ${q.remark ? `
+    <div class="dr-section">
+      <div class="dr-section-title">Remark</div>
+      <div class="dr-remark">${q.remark}</div>
+    </div>` : ''}
+  `;
+
+  document.getElementById('drawer-backdrop').classList.add('open');
+  document.getElementById('quote-drawer').classList.add('open');
+}
+
+function closeQuoteDrawer() {
+  document.getElementById('drawer-backdrop').classList.remove('open');
+  document.getElementById('quote-drawer').classList.remove('open');
 }
 
 init();
