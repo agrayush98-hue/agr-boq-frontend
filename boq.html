@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A.G.R — BOQ Generator</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #273549;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --purple: #a855f7;
+    --radius: 10px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Top bar — hidden when inside iframe */
+  .page-topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .back-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 5px 10px;
+    border-radius: 7px;
+    transition: all .15s;
+    border: 1px solid var(--border);
+  }
+  .back-btn:hover { background: var(--surface2); color: var(--text); }
+  .page-topbar-title { font-size: 15px; font-weight: 700; margin-left: 4px; }
+  .topbar-spacer { flex: 1; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 28px 20px 60px; }
+
+  /* Steps */
+  .steps-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 32px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    background: var(--surface);
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .step-label { font-size: 12px; font-weight: 500; color: var(--muted); white-space: nowrap; }
+  .step.active .step-dot { border-color: var(--accent); background: var(--accent); color: #fff; }
+  .step.active .step-label { color: var(--text); font-weight: 600; }
+  .step.done .step-dot { border-color: var(--green); background: var(--green); color: #fff; }
+  .step.done .step-label { color: var(--muted); }
+  .step-line { flex: 1; height: 2px; background: var(--border); min-width: 24px; transition: background .2s; }
+  .step-line.done { background: var(--green); }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .card-body { padding: 20px; }
+
+  /* Form grid */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .form-control {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color .15s;
+    width: 100%;
+  }
+  .form-control:focus { border-color: var(--accent); }
+  .form-control::placeholder { color: var(--muted); }
+  textarea.form-control { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+  /* Requirement area */
+  .req-area {
+    position: relative;
+  }
+  textarea#requirement {
+    min-height: 130px;
+    padding-bottom: 44px;
+  }
+  .req-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: var(--accent-hover); box-shadow: 0 4px 14px rgba(59,130,246,.35); }
+  .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-success { background: #16a34a; color: #fff; }
+  .btn-success:hover:not(:disabled) { background: #15803d; }
+  .btn-success:disabled { opacity: .55; cursor: not-allowed; }
+
+  /* Generate section */
+  .generate-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .generate-row > div { flex: 1; min-width: 200px; }
+
+  /* AI Loading */
+  .ai-loading {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .ai-loading.show { display: block; }
+  .ai-pulse {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .ai-pulse span {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .ai-pulse span:nth-child(2) { animation-delay: .2s; }
+  .ai-pulse span:nth-child(3) { animation-delay: .4s; }
+  @keyframes pulse { 0%, 100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+  .ai-loading-text { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .ai-loading-sub { font-size: 12px; color: var(--muted); }
+
+  /* Items table */
+  .items-section { display: none; }
+  .items-section.show { display: block; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    padding: 9px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+  .qty-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 13px;
+    width: 64px;
+    text-align: center;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .qty-input:focus { border-color: var(--accent); }
+  .row-total { font-weight: 600; color: var(--text); font-family: monospace; }
+
+  /* Totals */
+  .totals-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-top: 4px;
+  }
+  .totals-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 13px;
+  }
+  .totals-row.total-line { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 12px; }
+  .totals-row .label { color: var(--muted); }
+  .totals-row .amount { font-family: monospace; }
+  .totals-row.grand .label { font-size: 15px; font-weight: 700; color: var(--text); }
+  .totals-row.grand .amount { font-size: 18px; font-weight: 800; color: var(--accent); }
+
+  /* Scope text */
+  .scope-box {
+    background: rgba(59,130,246,.06);
+    border: 1px solid rgba(59,130,246,.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  /* Save actions */
+  .save-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px 18px;
+    font-size: 13px;
+    z-index: 999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all .3s;
+    max-width: 320px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: rgba(34,197,94,.4); color: #4ade80; }
+  .toast.error { border-color: rgba(239,68,68,.4); color: #f87171; }
+
+  /* Spinner */
+  .spinner {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border: 2px solid rgba(255,255,255,.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Reset/new quote */
+  .new-quote-btn { display: none; }
+  .new-quote-btn.show { display: inline-flex; }
+
+  /* Inside iframe: hide topbar */
+  body.in-iframe .page-topbar { display: none; }
+  body.in-iframe .container { padding-top: 20px; }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .generate-row { flex-direction: column; }
+    .steps-row { gap: 0; }
+    .step-label { display: none; }
+  }
+  @media (max-width: 420px) {
+    .container { padding: 16px 12px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-topbar" id="page-topbar">
+  <a href="dashboard.html" class="back-btn">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Dashboard
+  </a>
+  <span class="page-topbar-title">BOQ Generator</span>
+  <div class="topbar-spacer"></div>
+  <button class="btn btn-ghost new-quote-btn" id="new-quote-top" onclick="resetAll()" style="font-size:12px;padding:6px 12px;">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Quote
+  </button>
+</div>
+
+<div class="container">
+
+  <!-- Steps -->
+  <div class="steps-row" id="steps-row">
+    <div class="step active" id="step-1">
+      <div class="step-dot">1</div>
+      <span class="step-label">Client Info</span>
+    </div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step" id="step-2">
+      <div class="step-dot">2</div>
+      <span class="step-label">Requirements</span>
+    </div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step" id="step-3">
+      <div class="step-dot">3</div>
+      <span class="step-label">Review BOQ</span>
+    </div>
+    <div class="step-line" id="line-3"></div>
+    <div class="step" id="step-4">
+      <div class="step-dot">4</div>
+      <span class="step-label">Save</span>
+    </div>
+  </div>
+
+  <!-- Step 1: Client Info -->
+  <div class="card" id="client-card">
+    <div class="card-header">
+      <span class="card-title">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Client Information
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Client Name *</label>
+          <input class="form-control" id="c-name" placeholder="e.g. Rajesh Sharma" required list="clients-dl">
+          <datalist id="clients-dl"></datalist>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone / Contact</label>
+          <input class="form-control" id="c-contact" placeholder="+91 98765 43210" type="tel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-control" id="c-email" placeholder="client@email.com" type="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label">GSTIN</label>
+          <input class="form-control" id="c-gstin" placeholder="27AABCU9603R1ZX" style="text-transform:uppercase">
+        </div>
+        <div class="form-group">
+          <label class="form-label">City</label>
+          <input class="form-control" id="c-city" placeholder="Mumbai">
+        </div>
+        <div class="form-group">
+          <label class="form-label">State</label>
+          <input class="form-control" id="c-state" placeholder="Maharashtra">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Requirement -->
+  <div class="card" id="req-card">
+    <div class="card-header">
+      <span class="card-title">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Project Requirement
+      </span>
+    </div>
+    <div class="card-body">
+      <div class="form-group full" style="margin-bottom:16px">
+        <label class="form-label">Describe what needs to be automated *</label>
+        <div class="req-area">
+          <textarea class="form-control" id="requirement" placeholder="e.g. 3BHK apartment — 3 bedrooms, living room, kitchen, 2 bathrooms. Need smart lighting with dimmers, motorized curtains in all rooms, 5 AC control points, video door phone, 4 camera security, smart locks on main door and bedroom doors. Client prefers Zigbee-based ecosystem."></textarea>
+        </div>
+        <div class="req-hint">Be specific about room count, AC units, cameras, lighting zones — the more detail, the more accurate the BOQ.</div>
+      </div>
+      <div style="display:flex;justify-content:flex-end">
+        <button class="btn btn-primary" id="generate-btn" onclick="generateBOQ()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          Generate BOQ with AI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Loading -->
+  <div class="ai-loading" id="ai-loading">
+    <div class="ai-pulse">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="ai-loading-text">Generating BOQ with Claude AI…</div>
+    <div class="ai-loading-sub">Analysing requirements and matching products from Zoho catalog</div>
+  </div>
+
+  <!-- Step 3: Review -->
+  <div class="items-section" id="items-section">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          BOQ Items
+        </span>
+        <span id="items-count" style="font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div id="scope-wrap" style="padding:14px 20px 0"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Product</th>
+              <th>Unit</th>
+              <th>Qty</th>
+              <th>Rate (₹)</th>
+              <th>Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+      </div>
+      <div style="padding:16px 20px">
+        <div class="totals-card" id="totals-card"></div>
+      </div>
+    </div>
+
+    <!-- Step 4: Save -->
+    <div class="card" id="save-card">
+      <div class="card-header">
+        <span class="card-title">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Save Quote
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="form-group">
+            <label class="form-label">Discount (₹)</label>
+            <input class="form-control" id="s-discount" type="number" min="0" step="100" placeholder="0" oninput="recalcTotals()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes (optional)</label>
+            <input class="form-control" id="s-notes" placeholder="Special terms, delivery notes…">
+          </div>
+        </div>
+        <div class="save-row">
+          <button class="btn btn-success" id="save-btn" onclick="saveQuote()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Save Quote
+          </button>
+          <button class="btn btn-ghost" onclick="resetAll()">
+            Start Over
+          </button>
+          <span id="saved-msg" style="font-size:13px;color:#4ade80;display:none"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://agr-boq-backend.agrayush98.workers.dev';
+
+function getSession() { return localStorage.getItem('sessionId'); }
+
+// Detect if inside iframe
+if (window.self !== window.top) {
+  document.body.classList.add('in-iframe');
+}
+
+// Auth check
+if (!getSession() && window.self === window.top) {
+  location.href = 'index.html';
+}
+
+let generatedData = null;
+let quoteItems = [];
+
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+function fmt(n) { return Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+function fmtRate(n) { return Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 }); }
+
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const s = document.getElementById(`step-${i}`);
+    s.classList.remove('active', 'done');
+    if (i < n) s.classList.add('done');
+    if (i === n) s.classList.add('active');
+    if (i < 4) {
+      const l = document.getElementById(`line-${i}`);
+      l.classList.toggle('done', i < n);
+    }
+  }
+}
+
+async function generateBOQ() {
+  const clientName = document.getElementById('c-name').value.trim();
+  const requirement = document.getElementById('requirement').value.trim();
+
+  if (!clientName) { toast('Please enter the client name first.', 'error'); document.getElementById('c-name').focus(); return; }
+  if (!requirement) { toast('Please describe the project requirements.', 'error'); document.getElementById('requirement').focus(); return; }
+
+  const btn = document.getElementById('generate-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Generating…';
+
+  document.getElementById('ai-loading').classList.add('show');
+  document.getElementById('items-section').classList.remove('show');
+
+  setStep(2);
+
+  try {
+    const res = await fetch(`${API}/api/quotes/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
+      body: JSON.stringify({ requirement })
+    });
+
+    if (!res.ok) throw new Error('Generation failed');
+    const data = await res.json();
+
+    generatedData = data;
+    quoteItems = (data.items || []).map(item => ({
+      itemName: item.name || item.itemName,
+      quantity: item.quantity || 1,
+      unit: item.unit || 'pcs',
+      unitRate: item.rate || item.unitRate || 0,
+    }));
+
+    renderItems();
+    document.getElementById('ai-loading').classList.remove('show');
+    document.getElementById('items-section').classList.add('show');
+    setStep(3);
+
+    document.getElementById('new-quote-top').classList.add('show');
+    document.getElementById('items-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch (err) {
+    document.getElementById('ai-loading').classList.remove('show');
+    toast('Generation failed — check your connection or try again.', 'error');
+    setStep(1);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Regenerate';
+  }
+}
+
+function renderItems() {
+  const scope = generatedData?.project?.scope;
+  const scopeWrap = document.getElementById('scope-wrap');
+  scopeWrap.innerHTML = scope
+    ? `<div class="scope-box">${scope}</div>`
+    : '';
+
+  const tbody = document.getElementById('items-tbody');
+  tbody.innerHTML = quoteItems.map((item, i) => `
+    <tr>
+      <td style="color:var(--muted);width:32px">${i + 1}</td>
+      <td style="font-weight:500;max-width:240px">${item.itemName}</td>
+      <td style="color:var(--muted)">${item.unit}</td>
+      <td>
+        <input class="qty-input" type="number" min="1" value="${item.quantity}"
+          onchange="updateQty(${i}, this.value)" oninput="updateQty(${i}, this.value)">
+      </td>
+      <td style="color:var(--muted);font-family:monospace">${fmtRate(item.unitRate)}</td>
+      <td class="row-total" id="row-total-${i}">₹${fmt(item.quantity * item.unitRate)}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('items-count').textContent = `${quoteItems.length} items`;
+  renderTotals();
+}
+
+function updateQty(i, val) {
+  const qty = Math.max(1, parseInt(val) || 1);
+  quoteItems[i].quantity = qty;
+  const cell = document.getElementById(`row-total-${i}`);
+  if (cell) cell.textContent = '₹' + fmt(qty * quoteItems[i].unitRate);
+  renderTotals();
+}
+
+function calcTotals() {
+  const discount = parseFloat(document.getElementById('s-discount')?.value) || 0;
+  const subtotal = quoteItems.reduce((s, it) => s + it.quantity * it.unitRate, 0);
+  const discountedSubtotal = Math.max(0, subtotal - discount);
+  const gst = discountedSubtotal * 0.18;
+  const productsTotal = discountedSubtotal + gst;
+  const installation = productsTotal * 0.10;
+  const commissioning = productsTotal * 0.05;
+  const grandTotal = productsTotal + installation + commissioning;
+  return { subtotal, discount, discountedSubtotal, gst, productsTotal, installation, commissioning, grandTotal };
+}
+
+function recalcTotals() { renderTotals(); }
+
+function renderTotals() {
+  const t = calcTotals();
+  document.getElementById('totals-card').innerHTML = `
+    <div class="totals-row"><span class="label">Subtotal</span><span class="amount">₹${fmt(t.subtotal)}</span></div>
+    ${t.discount > 0 ? `<div class="totals-row"><span class="label" style="color:#f87171">Discount</span><span class="amount" style="color:#f87171">– ₹${fmt(t.discount)}</span></div>` : ''}
+    <div class="totals-row"><span class="label">GST (18%)</span><span class="amount">₹${fmt(t.gst)}</span></div>
+    <div class="totals-row"><span class="label">Products Total (incl. GST)</span><span class="amount">₹${fmt(t.productsTotal)}</span></div>
+    <div class="totals-row"><span class="label">Installation (10%)</span><span class="amount">₹${fmt(t.installation)}</span></div>
+    <div class="totals-row"><span class="label">Commissioning (5%)</span><span class="amount">₹${fmt(t.commissioning)}</span></div>
+    <div class="totals-row total-line grand"><span class="label">Grand Total</span><span class="amount">₹${fmt(t.grandTotal)}</span></div>
+  `;
+}
+
+async function saveQuote() {
+  if (!quoteItems.length) { toast('No items to save.', 'error'); return; }
+
+  const clientName = document.getElementById('c-name').value.trim();
+  if (!clientName) { toast('Client name is required.', 'error'); return; }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving…';
+
+  const t = calcTotals();
+  const client = {
+    name: clientName,
+    contact: document.getElementById('c-contact').value.trim(),
+    email: document.getElementById('c-email').value.trim(),
+    gstin: document.getElementById('c-gstin').value.trim().toUpperCase(),
+    city: document.getElementById('c-city').value.trim(),
+    state: document.getElementById('c-state').value.trim(),
+  };
+
+  const body = {
+    client,
+    project: generatedData?.project || {},
+    items: quoteItems,
+    subtotal: t.discountedSubtotal,
+    totalGST: t.gst,
+    grandTotal: t.grandTotal,
+    installation: t.installation,
+    commissioning: t.commissioning,
+    discount: t.discount,
+  };
+
+  try {
+    const res = await fetch(`${API}/api/quotes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.error || 'Save failed');
+
+    btn.innerHTML = `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Saved`;
+    btn.style.background = '#16a34a';
+    btn.disabled = true;
+
+    const msg = document.getElementById('saved-msg');
+    msg.textContent = `Saved as ${data.quoteNumber}`;
+    msg.style.display = '';
+
+    setStep(4);
+    toast(`Quote ${data.quoteNumber} saved successfully!`);
+
+  } catch (err) {
+    toast(err.message || 'Save failed — please try again.', 'error');
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Quote';
+  }
+}
+
+function resetAll() {
+  generatedData = null;
+  quoteItems = [];
+  document.getElementById('requirement').value = '';
+  document.getElementById('s-discount') && (document.getElementById('s-discount').value = '');
+  document.getElementById('s-notes') && (document.getElementById('s-notes').value = '');
+  document.getElementById('ai-loading').classList.remove('show');
+  document.getElementById('items-section').classList.remove('show');
+  document.getElementById('new-quote-top').classList.remove('show');
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn) { saveBtn.disabled = false; saveBtn.style.background = ''; saveBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save Quote'; }
+  const savedMsg = document.getElementById('saved-msg');
+  if (savedMsg) savedMsg.style.display = 'none';
+  const genBtn = document.getElementById('generate-btn');
+  genBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Generate BOQ with AI';
+  setStep(1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Load client suggestions
+async function loadClients() {
+  try {
+    const res = await fetch(`${API}/api/clients`, { headers: { 'X-Session-ID': getSession() } });
+    const clients = await res.json();
+    const dl = document.getElementById('clients-dl');
+    (Array.isArray(clients) ? clients : []).forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.name;
+      dl.appendChild(opt);
+    });
+  } catch {}
+}
+
+loadClients();
+</script>
+</body>
+</html>

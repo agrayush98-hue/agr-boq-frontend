@@ -99,6 +99,10 @@
   .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
   .overlay.open { display: flex; }
 
+  /* BOQ panel flex layout */
+  #boq-panel { display: none; }
+  #boq-panel.open { display: flex !important; }
+
   /* Mobile */
   @media (max-width: 768px) {
     .sidebar { transform: translateX(-100%); }
@@ -110,6 +114,8 @@
     .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
     .stat-card { padding: 14px; }
     .stat-info .value { font-size: 20px; }
+    #boq-panel { left: 0 !important; }
+    #boq-menu-toggle { display: flex !important; }
   }
   @media (max-width: 420px) {
     .stats-grid { grid-template-columns: 1fr; }
@@ -139,6 +145,10 @@
       Clients
     </a>
     <div class="nav-section">Work</div>
+    <a class="nav-link" onclick="openBOQ()" style="cursor:pointer">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      BOQ System
+    </a>
     <a href="projects.html" class="nav-link">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       Projects
@@ -169,6 +179,21 @@
 
 <!-- Mobile overlay -->
 <div class="overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+
+<!-- BOQ iframe panel -->
+<div id="boq-panel" style="display:none;position:fixed;top:0;left:var(--sidebar-w);right:0;bottom:0;z-index:90;background:var(--bg);flex-direction:column;">
+  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
+    <button class="menu-toggle" onclick="toggleSidebar()" style="display:none" id="boq-menu-toggle">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span style="font-size:14px;font-weight:700">BOQ Generator</span>
+    <button onclick="closeBOQ()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .15s" onmouseover="this.style.background='var(--surface2)';this.style.color='var(--text)'" onmouseout="this.style.background='none';this.style.color='var(--muted)'">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Close
+    </button>
+  </div>
+  <iframe id="boq-frame" src="" style="width:100%;flex:1;border:none;" allow="same-origin"></iframe>
+</div>
 
 <!-- Main -->
 <div class="main">
@@ -232,6 +257,24 @@ function toggleSidebar() {
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('mob-overlay').classList.remove('open');
+}
+
+function openBOQ() {
+  const panel = document.getElementById('boq-panel');
+  const frame = document.getElementById('boq-frame');
+  if (!frame.src || frame.src === 'about:blank') {
+    frame.src = 'boq.html';
+  }
+  panel.classList.add('open');
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.querySelector('.nav-link[onclick="openBOQ()"]').classList.add('active');
+  closeSidebar();
+}
+
+function closeBOQ() {
+  document.getElementById('boq-panel').classList.remove('open');
+  document.querySelector('.nav-link[onclick="openBOQ()"]')?.classList.remove('active');
+  document.querySelector('.nav-link[href="dashboard.html"]')?.classList.add('active');
 }
 
 function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
