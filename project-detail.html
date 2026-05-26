@@ -193,6 +193,22 @@
   .ai-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:bq-pulse 1.2s ease-in-out infinite;}
   .ai-dot:nth-child(2){animation-delay:.2s;}.ai-dot:nth-child(3){animation-delay:.4s;}
 
+  /* Proposal tab */
+  .prop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;}
+  .prop-card-hd{display:flex;align-items:center;gap:12px;padding:14px 18px;}
+  .prop-card-bd{padding:20px;border-top:1px solid var(--border);}
+  .prop-card.accepted{border-color:rgba(34,197,94,.3);}
+  .prop-card.rejected{border-color:rgba(239,68,68,.3);}
+  .prop-resp-group{display:flex;gap:20px;flex-wrap:wrap;margin:10px 0 14px;}
+  .prop-resp-label{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;}
+  .prop-resp-label input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer;}
+  .badge-sent{background:rgba(168,85,247,.15);color:#c084fc;}
+  .badge-accepted{background:rgba(34,197,94,.15);color:#4ade80;}
+  .badge-rejected{background:rgba(239,68,68,.15);color:#f87171;}
+  .badge-negotiating{background:rgba(234,179,8,.15);color:#facc15;}
+  .zoho-link{display:inline-flex;align-items:center;gap:6px;color:#60a5fa;font-size:12px;text-decoration:none;padding:5px 10px;border:1px solid rgba(59,130,246,.3);border-radius:6px;transition:all .15s;}
+  .zoho-link:hover{background:rgba(59,130,246,.1);}
+
   /* Survey tab */
   .sv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;}
   .sv-card-hd{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;user-select:none;}
@@ -496,8 +512,7 @@ function renderPage(){
 
     <!-- Proposal Tab -->
     <div class="tab-panel" id="tab-proposal">
-      ${tabPlaceholder('proposal','Client Proposal','Send the approved BOQ to the client as a Zoho Books estimate and track their response.',
-        'Create Proposal','proposal','M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 11a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 0h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 7.91a16 16 0 0 0 6.1 6.1l.91-.91a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z',c.proposals)}
+      <div id="proposal-ui" style="padding:4px 0"></div>
     </div>
 
     <!-- Payments Tab -->
@@ -541,8 +556,9 @@ function showTab(name, btn){
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById(`tab-${name}`).classList.add('active');
   btn.classList.add('active');
-  if(name==='survey' && !window._svLoaded) loadSurveyTab();
-  if(name==='boq'    && !window._boqLoaded) loadBOQTab();
+  if(name==='survey'   && !window._svLoaded)       loadSurveyTab();
+  if(name==='boq'      && !window._boqLoaded)      loadBOQTab();
+  if(name==='proposal' && !window._propLoaded)     loadProposalTab();
 }
 
 async function quickUpdateStatus(){
@@ -604,6 +620,240 @@ async function deleteProject(){
 async function doLogout(){
   await fetch(`${API}/api/auth/logout`,{method:'POST',headers:ah()}).catch(()=>{});
   localStorage.removeItem('sessionId'); localStorage.removeItem('agr_user'); location.href='login.html';
+}
+
+// ── Proposal Tab ───────────────────────────────────────────────────────────
+
+window._propLoaded = false;
+window._proposals = [];
+
+async function loadProposalTab(){
+  const ui=document.getElementById('proposal-ui'); if(!ui) return;
+  ui.innerHTML='<div style="padding:32px;text-align:center;color:var(--muted)">Loading…</div>';
+  try{
+    // Fetch proposals + approved BOQs in parallel
+    const [propData, boqData] = await Promise.all([
+      fetch(`${API}/api/projects/${projectId}/proposals`,{headers:ah()}).then(r=>r.json()),
+      window._boqLoaded
+        ? Promise.resolve({boqs: window._boqs||[]})
+        : fetch(`${API}/api/projects/${projectId}/boqs`,{headers:ah()}).then(r=>r.json()).catch(()=>({boqs:[]}))
+    ]);
+    window._proposals = propData.proposals||[];
+    if(!window._boqLoaded && boqData.boqs){
+      window._boqs = boqData.boqs;
+      boqData.boqs.forEach(b=>{ try{ window._boqItems[b.id]=JSON.parse(b.items_json||'[]'); }catch{ window._boqItems[b.id]=[]; } });
+    }
+    window._propLoaded = true;
+    renderProposalUI();
+  }catch{
+    ui.innerHTML='<div style="padding:32px;text-align:center;color:#f87171">Failed to load proposals.</div>';
+  }
+}
+
+function propStatusBadge(s, cr){
+  if(cr==='negotiating') return `<span class="badge badge-negotiating">Negotiating</span>`;
+  const map={draft:'badge-bq-draft',sent:'badge-sent',accepted:'badge-accepted',rejected:'badge-rejected'};
+  const lbl={draft:'Draft',sent:'Sent',accepted:'Accepted',rejected:'Rejected'};
+  return `<span class="badge ${map[s]||'badge-sent'}">${lbl[s]||s}</span>`;
+}
+
+function renderProposalUI(){
+  const ui=document.getElementById('proposal-ui'); if(!ui) return;
+  const proposals=window._proposals||[];
+  const approvedBOQs=(window._boqs||[]).filter(b=>b.status==='approved');
+  const sentBOQIds=new Set(proposals.map(p=>p.boqId));
+  const unsent=approvedBOQs.filter(b=>!sentBOQIds.has(b.id));
+
+  let html=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div style="font-size:14px;font-weight:600">${proposals.length} Proposal${proposals.length!==1?'s':''}</div>
+    ${unsent.length?`<button class="btn btn-primary btn-sm" onclick="openSendProposalModal()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      Send Proposal
+    </button>`:''}
+  </div>`;
+
+  if(!proposals.length){
+    if(approvedBOQs.length){
+      html+=`<div class="placeholder-tab">
+        <div class="icon-wrap"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+        <h3>Ready to Send</h3>
+        <p>You have ${approvedBOQs.length} approved BOQ${approvedBOQs.length>1?'s':''}. Send it to the client as a Zoho Books estimate to get their response.</p>
+      </div>`;
+    } else {
+      html+=`<div class="placeholder-tab">
+        <div class="icon-wrap"><svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div>
+        <h3>No Proposals Yet</h3>
+        <p>Approve a BOQ first, then come back here to send it to the client as a Zoho Books estimate.</p>
+        <button class="btn btn-ghost btn-sm" onclick="showTab('boq',document.querySelector('.tab-btn[onclick*=boq]'))">Go to BOQ Tab</button>
+      </div>`;
+    }
+  } else {
+    proposals.forEach(p=>{ html+=renderProposalCard(p); });
+  }
+
+  html+=`<div id="prop-modal"></div>`;
+  ui.innerHTML=html;
+}
+
+function renderProposalCard(p){
+  let totals={};
+  try{ totals=JSON.parse(p.boqTotals||'{}'); }catch{}
+  const grandTotal=totals.grandTotal||0;
+  const isAccepted=p.status==='accepted';
+  const isRejected=p.status==='rejected';
+  const isResolved=isAccepted||isRejected;
+  const cardClass=isAccepted?' accepted':isRejected?' rejected':'';
+
+  return `<div class="prop-card${cardClass}" id="propc-${p.id}">
+    <div class="prop-card-hd">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">BOQ v${p.boqVersion||'?'} — Sent ${fmtDate(p.sentDate)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">
+          ${p.zohoEstimateNumber?`Zoho: ${esc(p.zohoEstimateNumber)}  ·  `:''} Grand Total: ${fmt(grandTotal)}
+        </div>
+      </div>
+      ${propStatusBadge(p.status, p.clientResponse)}
+    </div>
+    <div class="prop-card-bd">
+      ${p.zohoEstimateId?`<a class="zoho-link" href="https://books.zoho.in/app#/estimates/${esc(p.zohoEstimateId)}" target="_blank" style="margin-bottom:16px;display:inline-flex">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Open Estimate in Zoho Books
+      </a>`:''}
+
+      ${isResolved
+        ? `<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-radius:8px;background:${isAccepted?'rgba(34,197,94,.08)':'rgba(239,68,68,.08)'};border:1px solid ${isAccepted?'rgba(34,197,94,.2)':'rgba(239,68,68,.2)'}">
+            <svg width="14" height="14" fill="none" stroke="${isAccepted?'#4ade80':'#f87171'}" stroke-width="2" viewBox="0 0 24 24">${isAccepted?'<polyline points="20 6 9 17 4 12"/>':'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>'}</svg>
+            <div>
+              <div style="font-size:13px;font-weight:600;color:${isAccepted?'#4ade80':'#f87171'}">${isAccepted?'Accepted':'Rejected'} on ${fmtDate(p.clientResponseDate)}</div>
+              ${p.remarks?`<div style="font-size:12px;color:var(--muted);margin-top:2px">${esc(p.remarks)}</div>`:''}
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">Project status advanced to <strong>${isAccepted?'Accepted':'Rejected'}</strong></div>
+            </div>
+          </div>`
+        : `<div>
+            <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Client Response</div>
+            <div class="prop-resp-group">
+              <label class="prop-resp-label"><input type="radio" name="resp-${p.id}" value="accepted" ${p.clientResponse==='accepted'?'checked':''}> Accepted</label>
+              <label class="prop-resp-label"><input type="radio" name="resp-${p.id}" value="rejected" ${p.clientResponse==='rejected'?'checked':''}> Rejected</label>
+              <label class="prop-resp-label"><input type="radio" name="resp-${p.id}" value="negotiating" ${p.clientResponse==='negotiating'?'checked':''}> Negotiating</label>
+            </div>
+            <div class="form-group" style="margin-bottom:12px">
+              <label class="form-label">Remarks</label>
+              <textarea class="form-control" id="prop-remarks-${p.id}" rows="2" placeholder="Client feedback, price negotiation notes…">${esc(p.remarks||'')}</textarea>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="saveProposalResponse(${p.id})">Save Response</button>
+          </div>`
+      }
+    </div>
+  </div>`;
+}
+
+async function saveProposalResponse(id){
+  const selected=document.querySelector(`input[name="resp-${id}"]:checked`);
+  if(!selected){ toast('Select a response first','error'); return; }
+  const clientResponse=selected.value;
+  const remarks=document.getElementById(`prop-remarks-${id}`)?.value.trim()||'';
+  try{
+    const res=await fetch(`${API}/api/proposals/${id}/response`,{
+      method:'PUT',headers:jh(),body:JSON.stringify({clientResponse,remarks})
+    }).then(r=>r.json());
+    if(!res.success) throw new Error(res.error||'Failed');
+    toast(`Response saved: ${clientResponse}`);
+    if(clientResponse==='accepted'||clientResponse==='rejected'){
+      project.status=clientResponse;
+      document.getElementById('header-badge').innerHTML=statusBadge(clientResponse);
+      const ph=document.querySelector('.project-header');
+      if(ph){ const ex=ph.querySelector('.stepper'); if(ex) ex.outerHTML=renderStepper(clientResponse); }
+      const ss=document.getElementById('status-select'); if(ss) ss.value=clientResponse;
+    }
+    window._propLoaded=false;
+    await loadProposalTab();
+  }catch(e){ toast(e.message||'Failed to save response','error'); }
+}
+
+// ── Send Proposal modal ─────────────────────────────────────────────────────
+
+function openSendProposalModal(){
+  const container=document.getElementById('prop-modal'); if(!container) return;
+  const sentBOQIds=new Set((window._proposals||[]).map(p=>p.boqId));
+  const approvedUnsent=(window._boqs||[]).filter(b=>b.status==='approved'&&!sentBOQIds.has(b.id));
+
+  const boqCards=approvedUnsent.map(b=>{
+    let totals={};
+    try{ totals=JSON.parse(b.totals_json||'{}'); }catch{}
+    const items=window._boqItems?.[b.id]||[];
+    return `<label class="gen-opt" style="display:block;cursor:pointer">
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="radio" name="prop-boq" value="${b.id}" ${approvedUnsent.length===1?'checked':''} style="accent-color:var(--accent)">
+        <div>
+          <div class="gen-opt-title" style="margin-bottom:2px">BOQ v${b.version}</div>
+          <div class="gen-opt-desc">${items.length} items · Grand Total: ${fmt(totals.grandTotal||0)} · Approved by ${esc(b.approvedBy||'team')}</div>
+        </div>
+      </div>
+    </label>`;
+  }).join('');
+
+  container.innerHTML=`<div class="modal-ov" onclick="if(event.target===this)closePropModal()">
+    <div class="modal-bx" onclick="event.stopPropagation()">
+      <div class="modal-title">Send Proposal to Client</div>
+      <div class="modal-sub">Select the approved BOQ to send as a Zoho Books estimate</div>
+
+      <div id="prop-boq-select">${boqCards}</div>
+
+      <div style="background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.15);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);margin:16px 0">
+        <svg width="12" height="12" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24" style="display:inline;margin-right:4px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        This will create a Zoho Books estimate for <strong style="color:var(--text)">${esc(project?.clientName||'the client')}</strong> and advance the project status to "Proposal Sent".
+      </div>
+
+      <div id="prop-sending" style="display:none">
+        <div class="ai-gen-anim"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div>
+        <div style="text-align:center;font-size:13px;color:var(--muted);margin-bottom:16px">Creating Zoho estimate…</div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border)">
+        <button class="btn btn-ghost btn-sm" onclick="closePropModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="prop-send-btn" onclick="confirmSendProposal()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Confirm & Send
+        </button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function closePropModal(){
+  const c=document.getElementById('prop-modal'); if(c) c.innerHTML='';
+}
+
+async function confirmSendProposal(){
+  const selected=document.querySelector('input[name="prop-boq"]:checked');
+  if(!selected){ toast('Select a BOQ version first','error'); return; }
+  const boqId=Number(selected.value);
+  const btn=document.getElementById('prop-send-btn');
+  if(btn) btn.disabled=true;
+  document.getElementById('prop-boq-select').style.display='none';
+  document.getElementById('prop-sending').style.display='';
+  try{
+    const res=await fetch(`${API}/api/boqs/${boqId}/send-proposal`,{method:'POST',headers:jh()}).then(r=>r.json());
+    if(!res.success) throw new Error(res.error||'Failed to send proposal');
+    toast(`Proposal sent! Zoho Estimate: ${res.zohoEstimateNumber}`);
+    project.status='proposal_sent';
+    document.getElementById('header-badge').innerHTML=statusBadge('proposal_sent');
+    const ph=document.querySelector('.project-header');
+    if(ph){ const ex=ph.querySelector('.stepper'); if(ex) ex.outerHTML=renderStepper('proposal_sent'); }
+    const ss=document.getElementById('status-select'); if(ss) ss.value='proposal_sent';
+    if(project.counts) project.counts.proposals=(project.counts.proposals||0)+1;
+    const tc=document.querySelector('.tab-btn[onclick*="proposal"] .tab-count');
+    if(tc) tc.textContent=project.counts.proposals||'';
+    closePropModal();
+    window._propLoaded=false;
+    await loadProposalTab();
+  }catch(e){
+    toast(e.message||'Failed to send proposal','error');
+    if(btn) btn.disabled=false;
+    document.getElementById('prop-boq-select').style.display='';
+    document.getElementById('prop-sending').style.display='none';
+  }
 }
 
 // ── BOQ Tab ────────────────────────────────────────────────────────────────
