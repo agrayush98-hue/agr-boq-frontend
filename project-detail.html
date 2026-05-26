@@ -40,7 +40,7 @@
   .breadcrumb{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);}
   .breadcrumb span{color:var(--text);font-weight:600;}
   .topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
-  .content{padding:24px;flex:1;max-width:900px;width:100%;}
+  .content{padding:24px;flex:1;width:100%;}
 
   /* Buttons */
   .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s;text-decoration:none;font-family:inherit;}
@@ -309,7 +309,7 @@ function getUser(){ try{ return JSON.parse(localStorage.getItem('agr_user')||'nu
 function ah(){ return {'X-Session-ID':getSession()}; }
 function jh(){ return {'Content-Type':'application/json','X-Session-ID':getSession()}; }
 function esc(s){ return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
-function fmt(n){ return n?'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:0}):'—'; }
+function fmt(n){ return '₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:0}); }
 function fmtDate(d){ return d?new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'2-digit'}):'—'; }
 function daysActive(d){ return d?Math.floor((Date.now()-new Date(d))/86400000):0; }
 
@@ -928,9 +928,10 @@ async function loadBOQTab(){
       fetch(`${API}/api/projects/${projectId}/boqs`,{headers:ah()}).then(r=>r.json()),
       window._boqProducts
         ? Promise.resolve(null)
-        : fetch(`${API}/api/boqs/products`,{headers:ah()}).then(r=>r.json()).catch(()=>({products:[]}))
+        : fetch(`${API}/api/boqs/products`,{headers:ah()}).then(r=>r.json()).catch(()=>null)
     ]);
-    if(prodData?.products) window._boqProducts = prodData.products;
+    if(prodData===null && !window._boqProducts) toast('Product list unavailable — Zoho connection issue','error');
+    else if(prodData?.products) window._boqProducts = prodData.products;
     window._boqs = boqData.boqs||[];
     window._boqLoaded = true;
     window._boqItems = {};
@@ -1228,6 +1229,7 @@ async function saveBOQ(id, action){
       toast('BOQ approved!');
       project.status='boq_draft'; // Keep track
       window._boqLoaded=false;
+      window._propLoaded=false;
       await loadBOQTab();
     }catch(e){ toast(e.message||'Approve failed','error'); }
     return;
@@ -1573,14 +1575,16 @@ function renderSurveyBody(sv, rooms){
       <div class="sv-section-title">
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
         Floor Plans
-        <span style="font-size:10px;color:var(--muted);font-weight:400">(images or PDFs — stored locally for now)</span>
       </div>
-      <div class="file-grid" id="plan-grid-${sv.id}">${planGrid}</div>
-      <label class="file-upload-label">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Upload Floor Plans
-        <input type="file" multiple accept="image/*,.pdf" style="display:none" onchange="handlePlanUpload(${sv.id},this)">
-      </label>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Paste a shareable link from Google Drive, Dropbox, or any cloud storage.</div>
+      <div id="plan-urls-${sv.id}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px">
+        ${plans.map((p,i)=>`<div style="display:flex;gap:6px;align-items:center">
+          <input class="form-control" value="${esc(p.url||'')}" placeholder="https://drive.google.com/…" style="flex:1;min-width:0" data-plan-url>
+          <input class="form-control" value="${esc(p.label||p.caption||'')}" placeholder="Label" style="width:140px" data-plan-label>
+          <button class="btn btn-danger btn-sm" style="flex-shrink:0" onclick="this.parentElement.remove()">✕</button>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="addUrlRow('plan-urls-${sv.id}','https://drive.google.com/…','Label')">+ Add Floor Plan Link</button>
     </div>
 
     <div class="sv-section">
@@ -1588,12 +1592,15 @@ function renderSurveyBody(sv, rooms){
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         Site Photos
       </div>
-      <div class="file-grid" id="photo-grid-${sv.id}">${photoGrid}</div>
-      <label class="file-upload-label">
-        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Upload Photos
-        <input type="file" multiple accept="image/*" style="display:none" onchange="handlePhotoUpload(${sv.id},this)">
-      </label>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Paste a shareable link from Google Drive, Dropbox, or any cloud storage.</div>
+      <div id="photo-urls-${sv.id}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px">
+        ${photos.map((p,i)=>`<div style="display:flex;gap:6px;align-items:center">
+          <input class="form-control" value="${esc(p.url||'')}" placeholder="https://drive.google.com/…" style="flex:1;min-width:0" data-photo-url>
+          <input class="form-control" value="${esc(p.caption||p.label||'')}" placeholder="Caption" style="width:140px" data-photo-label>
+          <button class="btn btn-danger btn-sm" style="flex-shrink:0" onclick="this.parentElement.remove()">✕</button>
+        </div>`).join('')}
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="addUrlRow('photo-urls-${sv.id}','https://drive.google.com/…','Caption')">+ Add Photo Link</button>
     </div>
 
     <div class="sv-section">
@@ -1667,97 +1674,6 @@ async function createSurvey(){
   }catch(e){ toast(e.message||'Failed to create survey','error'); }
 }
 
-const MAX_IMG_BYTES = 2 * 1024 * 1024; // 2 MB raw file guard
-
-function resizeImg(file){
-  return new Promise((resolve, reject)=>{
-    if(file.size > MAX_IMG_BYTES){
-      reject(new Error(`${file.name} is too large (${(file.size/1024/1024).toFixed(1)} MB). Max 2 MB per image.`));
-      return;
-    }
-    const reader=new FileReader();
-    reader.onload=e=>{
-      const img=new Image();
-      img.onload=()=>{
-        let {width:w,height:h}=img;
-        const max=600;
-        if(w>max||h>max){ const r=Math.min(max/w,max/h); w=Math.round(w*r); h=Math.round(h*r); }
-        const c=document.createElement('canvas'); c.width=w; c.height=h;
-        c.getContext('2d').drawImage(img,0,0,w,h);
-        resolve(c.toDataURL('image/jpeg',0.5));
-      };
-      img.src=e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-async function handlePhotoUpload(id, input){
-  const files=Array.from(input.files); if(!files.length) return;
-  toast('Processing photos…');
-  const photos=window._svPhotos[id]||[];
-  let added=0;
-  for(const f of files){
-    if(!f.type.startsWith('image/')){ toast(`${f.name}: not an image, skipped`,'error'); continue; }
-    try{
-      const url=await resizeImg(f);
-      photos.push({url,caption:f.name.replace(/\.[^.]+$/,'')});
-      added++;
-    }catch(e){ toast(e.message,'error'); }
-  }
-  window._svPhotos[id]=photos;
-  refreshPhotoGrid(id);
-  input.value='';
-  if(added) toast(`${added} photo${added>1?'s':''} added — click Save Changes`);
-}
-
-async function handlePlanUpload(id, input){
-  const files=Array.from(input.files); if(!files.length) return;
-  toast('Processing floor plans…');
-  const plans=window._svPlans[id]||[];
-  let added=0;
-  for(const f of files){
-    try{
-      let url;
-      if(f.type.startsWith('image/')) url=await resizeImg(f);
-      else {
-        if(f.size > MAX_IMG_BYTES) throw new Error(`${f.name} is too large (${(f.size/1024/1024).toFixed(1)} MB). Max 2 MB.`);
-        url=await new Promise(r=>{ const fr=new FileReader(); fr.onload=e=>r(e.target.result); fr.readAsDataURL(f); });
-      }
-      plans.push({url,label:f.name.replace(/\.[^.]+$/,'')});
-      added++;
-    }catch(e){ toast(e.message,'error'); }
-  }
-  window._svPlans[id]=plans;
-  refreshPlanGrid(id);
-  input.value='';
-  if(added) toast(`${added} floor plan${added>1?'s':''} added — click Save Changes`);
-}
-
-function refreshPhotoGrid(id){
-  const grid=document.getElementById(`photo-grid-${id}`); if(!grid) return;
-  const photos=window._svPhotos[id]||[];
-  grid.innerHTML=photos.map((p,i)=>`<div class="file-thumb">
-    <img src="${p.url}" alt="" onclick="previewImg('${p.url}')">
-    <button class="ft-del" onclick="removePhoto(${id},${i})">✕</button>
-  </div>`).join('');
-}
-
-function refreshPlanGrid(id){
-  const grid=document.getElementById(`plan-grid-${id}`); if(!grid) return;
-  const plans=window._svPlans[id]||[];
-  grid.innerHTML=plans.map((p,i)=>{
-    const isImg=p.url.startsWith('data:image');
-    return `<div class="file-thumb">
-      ${isImg?`<img src="${p.url}" alt="">`
-        :`<div class="file-doc"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>${esc(p.label||'Plan')}</span></div>`}
-      <button class="ft-del" onclick="removePlan(${id},${i})">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function removePhoto(id,idx){ const a=window._svPhotos[id]||[]; a.splice(idx,1); window._svPhotos[id]=a; refreshPhotoGrid(id); }
-function removePlan(id,idx){  const a=window._svPlans[id]||[];  a.splice(idx,1); window._svPlans[id]=a;  refreshPlanGrid(id); }
 
 function addMeasRow(id){
   const tbody=document.getElementById(`meas-body-${id}`); if(!tbody) return;
@@ -1790,14 +1706,34 @@ function collectMeasurements(id){
   return rooms;
 }
 
+function collectUrlRows(containerId, urlAttr, labelAttr){
+  const container=document.getElementById(containerId); if(!container) return [];
+  return Array.from(container.children).map(row=>({
+    url:(row.querySelector(`[${urlAttr}]`)?.value||'').trim(),
+    label:(row.querySelector(`[${labelAttr}]`)?.value||'').trim(),
+  })).filter(r=>r.url);
+}
+
+function addUrlRow(containerId, urlPlaceholder, labelPlaceholder){
+  const container=document.getElementById(containerId); if(!container) return;
+  const div=document.createElement('div'); div.style.cssText='display:flex;gap:6px;align-items:center';
+  const urlAttr=containerId.startsWith('photo')?'data-photo-url':'data-plan-url';
+  const lblAttr=containerId.startsWith('photo')?'data-photo-label':'data-plan-label';
+  div.innerHTML=`<input class="form-control" placeholder="${urlPlaceholder}" style="flex:1;min-width:0" ${urlAttr}><input class="form-control" placeholder="${labelPlaceholder}" style="width:140px" ${lblAttr}><button class="btn btn-danger btn-sm" style="flex-shrink:0" onclick="this.parentElement.remove()">✕</button>`;
+  container.appendChild(div);
+  div.querySelector('input').focus();
+}
+
 async function saveSurvey(id){
+  const photos=collectUrlRows(`photo-urls-${id}`,'data-photo-url','data-photo-label').map(r=>({url:r.url,caption:r.label}));
+  const plans =collectUrlRows(`plan-urls-${id}`, 'data-plan-url', 'data-plan-label').map(r=>({url:r.url,label:r.label}));
   const body={
     surveyDate:       document.getElementById(`svd-${id}`)?.value||null,
     surveyorName:     document.getElementById(`svn-${id}`)?.value.trim()||null,
     notes:            document.getElementById(`svnotes-${id}`)?.value.trim()||null,
     status:           document.getElementById(`svs-${id}`)?.value||'scheduled',
-    photos_json:      JSON.stringify(window._svPhotos[id]||[]),
-    floorPlans_json:  JSON.stringify(window._svPlans[id]||[]),
+    photos_json:      JSON.stringify(photos),
+    floorPlans_json:  JSON.stringify(plans),
     measurements_json:JSON.stringify(collectMeasurements(id)),
   };
   try{
@@ -1817,8 +1753,8 @@ async function markSurveyComplete(id){
     surveyorName:     document.getElementById(`svn-${id}`)?.value.trim()||null,
     notes:            document.getElementById(`svnotes-${id}`)?.value.trim()||null,
     status:           'completed',
-    photos_json:      JSON.stringify(window._svPhotos[id]||[]),
-    floorPlans_json:  JSON.stringify(window._svPlans[id]||[]),
+    photos_json:      JSON.stringify(collectUrlRows(`photo-urls-${id}`,'data-photo-url','data-photo-label').map(r=>({url:r.url,caption:r.label}))),
+    floorPlans_json:  JSON.stringify(collectUrlRows(`plan-urls-${id}`,'data-plan-url','data-plan-label').map(r=>({url:r.url,label:r.label}))),
     measurements_json:JSON.stringify(collectMeasurements(id)),
   };
   try{
