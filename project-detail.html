@@ -477,6 +477,50 @@
     .step-node{min-width:70px;}
     .step-label{font-size:9px;}
   }
+
+  /* ── Punch List ── */
+  .pl-header{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:18px;}
+  .pl-progress-bar{background:var(--surface2);border-radius:99px;height:12px;overflow:hidden;margin:10px 0 4px;}
+  .pl-progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#22c55e,#16a34a);transition:width .4s ease;}
+  .pl-stats{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;}
+  .pl-stat{text-align:center;flex:1;min-width:70px;}
+  .pl-stat-val{font-size:22px;font-weight:800;line-height:1.1;}
+  .pl-stat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:3px;}
+  .pl-room{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:14px;overflow:hidden;}
+  .pl-room-header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface2);cursor:pointer;user-select:none;}
+  .pl-room-title{font-size:14px;font-weight:700;flex:1;}
+  .pl-room-badges{display:flex;gap:6px;align-items:center;}
+  .pl-room-pct{font-size:12px;font-weight:700;color:var(--muted);}
+  .pl-room-bar{height:4px;background:var(--border);border-radius:99px;overflow:hidden;}
+  .pl-room-bar-fill{height:100%;background:#22c55e;border-radius:99px;transition:width .3s;}
+  .pl-item{display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-top:1px solid var(--border);transition:background .1s;}
+  .pl-item:hover{background:rgba(255,255,255,.02);}
+  .pl-item-name{flex:1;font-size:13px;font-weight:500;}
+  .pl-item-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+  .pl-status-btns{display:flex;gap:4px;flex-shrink:0;}
+  .pl-btn{border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;}
+  .pl-btn:hover{background:var(--surface2);}
+  .pl-btn.pass.active{background:#16a34a;border-color:#16a34a;color:#fff;}
+  .pl-btn.fail.active{background:#dc2626;border-color:#dc2626;color:#fff;}
+  .pl-btn.na.active{background:#64748b;border-color:#64748b;color:#fff;}
+  .pl-item-meta{font-size:10px;color:var(--muted);margin-top:3px;}
+  .pl-notes-input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:12px;padding:5px 8px;width:100%;margin-top:4px;font-family:inherit;resize:none;}
+  .pl-notes-input:focus{outline:none;border-color:var(--accent);}
+  .pl-failed-section{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.25);border-radius:var(--radius);padding:16px;margin-bottom:18px;}
+  .pl-failed-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(239,68,68,.15);}
+  .pl-failed-item:last-child{border-bottom:none;}
+  .pl-signoff{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:20px;}
+  .pl-sig-box{background:var(--surface2);border:2px dashed var(--border);border-radius:8px;padding:14px;text-align:center;color:var(--muted);font-size:13px;min-height:60px;display:flex;align-items:center;justify-content:center;cursor:text;}
+  .pl-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:16px;}
+  .pl-modal-overlay.open{display:flex;}
+  .pl-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;}
+  .pl-cert{background:var(--surface);border:2px solid var(--green);border-radius:14px;padding:28px;text-align:center;}
+  .pl-cert-title{font-size:22px;font-weight:800;color:var(--green);margin-bottom:6px;}
+  .pl-cert-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+  @media(max-width:600px){
+    .pl-item{flex-wrap:wrap;}
+    .pl-status-btns{width:100%;}
+  }
 </style>
 </head>
 <body>
@@ -642,6 +686,67 @@
   <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   Report Issue
 </button>
+
+<!-- Punch List: Add Item Modal -->
+<div class="pl-modal-overlay" id="pl-additem-overlay" onclick="if(event.target===this)closePunchItemModal()">
+  <div class="pl-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <span style="font-size:16px;font-weight:700;">Add Checklist Item</span>
+      <button onclick="closePunchItemModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label class="form-label">Room / Area *</label>
+        <input id="pl-new-room" class="form-control" placeholder="e.g. Master Bedroom" list="pl-room-suggestions">
+        <datalist id="pl-room-suggestions"></datalist>
+      </div>
+      <div>
+        <label class="form-label">Item Name *</label>
+        <input id="pl-new-item" class="form-control" placeholder="e.g. Lights working">
+      </div>
+      <div>
+        <label class="form-label">Description (optional)</label>
+        <input id="pl-new-desc" class="form-control" placeholder="Additional notes about this check…">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closePunchItemModal()">Cancel</button>
+      <button class="btn btn-primary" id="pl-additem-btn" onclick="submitAddPunchItem()">Add Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Punch List: Sign-Off Modal -->
+<div class="pl-modal-overlay" id="pl-signoff-overlay" onclick="if(event.target===this)closePunchSignOff()">
+  <div class="pl-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <span style="font-size:16px;font-weight:700;">Complete & Sign Off</span>
+      <button onclick="closePunchSignOff()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:12px;font-size:13px;color:#86efac;text-align:center;">
+        ✅ All items passed or marked N/A. Ready for handover.
+      </div>
+      <div>
+        <label class="form-label">Client Name *</label>
+        <input id="pl-client-name" class="form-control" placeholder="Client's full name">
+      </div>
+      <div>
+        <label class="form-label">Digital Signature</label>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Type client name as digital signature</div>
+        <input id="pl-client-sig" class="form-control" placeholder="Type name to sign…" style="font-style:italic;font-size:16px;letter-spacing:1px;">
+      </div>
+      <div>
+        <label class="form-label">Handover Notes (optional)</label>
+        <textarea id="pl-handover-notes" class="form-control" rows="3" style="resize:vertical;" placeholder="Any final notes for the client…"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closePunchSignOff()">Cancel</button>
+      <button class="btn btn-primary" id="pl-signoff-btn" onclick="submitPunchSignOff()" style="background:#22c55e;">Complete & Hand Over</button>
+    </div>
+  </div>
+</div>
 
 <!-- Add Material Modal -->
 <div class="mat-modal-overlay" id="mat-modal-overlay" onclick="if(event.target===this)closeMaterialModal()">
@@ -933,6 +1038,10 @@ function renderPage(){
         Issues
         <span class="tab-count" id="iss-tab-count">0</span>
       </button>
+      <button class="tab-btn" onclick="showTab('punchlist',this)" id="punch-tab-btn">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Punch List
+      </button>
     </div>
 
     <!-- Critical issues banner (shown on all tabs when critical issues open) -->
@@ -1073,6 +1182,11 @@ function renderPage(){
     <div class="tab-panel" id="tab-issues">
       <div id="issues-ui"></div>
     </div>
+
+    <!-- Punch List Tab -->
+    <div class="tab-panel" id="tab-punchlist">
+      <div id="punch-ui"></div>
+    </div>
   `;
 
   // Populate assigned select
@@ -1111,6 +1225,7 @@ function showTab(name, btn){
   if(name==='sitelog'   && !window._slLoaded)      loadSiteLogTab();
   if(name==='materials' && !window._matLoaded)     loadMaterialsTab();
   if(name==='issues'    && !window._issLoaded)     loadIssuesTab();
+  if(name==='punchlist' && !window._plLoaded)      loadPunchListTab();
   // Show/hide Post Update FAB
   const fab=document.getElementById('sl-fab');
   if(fab) fab.classList.toggle('visible', name==='sitelog');
@@ -3727,6 +3842,498 @@ function copyShareLink(){
     document.getElementById('sl-share-copied').style.display='block';
     setTimeout(()=>{ document.getElementById('sl-share-copied').style.display='none'; }, 3000);
   }).catch(()=>{ document.execCommand('copy'); });
+}
+
+// ── Punch List / Final Handover Checklist ─────────────────────────────────────
+
+window._plLoaded   = false;
+window._punchList  = null;   // punch list meta
+window._punchItems = [];     // flat array
+window._plCollapsed = {};    // room → bool
+
+async function loadPunchListTab() {
+  window._plLoaded = true;
+  const el = document.getElementById('punch-ui');
+  if (el) el.innerHTML = '<p style="color:var(--muted);padding:40px;text-align:center;">Loading…</p>';
+  try {
+    const r = await fetch(`${API}/api/projects/${projectId}/punch-list`, { headers: ah() });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    window._punchList  = d.punchList;
+    window._punchItems = d.items || [];
+    renderPunchUI();
+  } catch(e) {
+    const el2 = document.getElementById('punch-ui');
+    if (el2) el2.innerHTML = `<p style="color:var(--red);padding:40px;text-align:center;">Error: ${e.message}</p>`;
+  }
+}
+
+function renderPunchUI() {
+  const el = document.getElementById('punch-ui');
+  if (!el) return;
+
+  if (!window._punchList) {
+    el.innerHTML = `
+    <div style="text-align:center;padding:60px 20px;">
+      <div style="font-size:48px;margin-bottom:16px;">📋</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:8px;">No Punch List Yet</div>
+      <div style="font-size:14px;color:var(--muted);margin-bottom:28px;">Create a room-by-room checklist to verify everything before handover.</div>
+      <button class="btn btn-primary" style="font-size:15px;padding:12px 28px;" onclick="createPunchList()">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Punch List
+      </button>
+    </div>`;
+    return;
+  }
+
+  const pl    = window._punchList;
+  const items = window._punchItems;
+  const total    = items.length;
+  const passed   = items.filter(i => i.status === 'pass').length;
+  const failed   = items.filter(i => i.status === 'fail').length;
+  const naItems  = items.filter(i => i.status === 'na').length;
+  const pending  = items.filter(i => i.status === 'pending').length;
+  const applicable = total - naItems;
+  const pct = applicable > 0 ? Math.round((passed / applicable) * 100) : 0;
+  const isComplete = pl.status === 'completed';
+  const canComplete = pending === 0 && failed === 0 && total > 0 && !isComplete;
+
+  // Group by room
+  const rooms = {};
+  for (const item of items) {
+    if (!rooms[item.roomArea]) rooms[item.roomArea] = [];
+    rooms[item.roomArea].push(item);
+  }
+
+  // Failed items section
+  const failedItems = items.filter(i => i.status === 'fail');
+  const failedSection = failedItems.length > 0 ? `
+  <div class="pl-failed-section">
+    <div style="font-size:14px;font-weight:700;color:#fca5a5;margin-bottom:12px;">
+      ❌ ${failedItems.length} item${failedItems.length !== 1 ? 's' : ''} failed — requires attention
+    </div>
+    ${failedItems.map(fi => `
+    <div class="pl-failed-item">
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:600;color:var(--text);">${esc(fi.itemName)}</div>
+        <div style="font-size:11px;color:var(--muted);">📍 ${esc(fi.roomArea)}${fi.notes?` — ${esc(fi.notes)}`:''}</div>
+      </div>
+      <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px;color:#f87171;border-color:#f87171;flex-shrink:0;"
+        onclick="raiseIssueFromPunch(${fi.id})">Raise Issue</button>
+    </div>`).join('')}
+  </div>` : '';
+
+  // Completion certificate (if completed)
+  const certSection = isComplete ? `
+  <div class="pl-cert" style="margin-top:20px;">
+    <div class="pl-cert-title">✅ Project Handed Over</div>
+    <div class="pl-cert-sub">Punch list completed and signed off</div>
+    ${pl.clientSignature ? `<div style="font-size:18px;font-style:italic;font-weight:600;color:var(--text);border-bottom:2px solid var(--green);display:inline-block;padding:0 20px;margin-bottom:12px;">${esc(pl.clientSignature)}</div>` : ''}
+    ${pl.clientSignedAt ? `<div style="font-size:12px;color:var(--muted);">Signed: ${new Date(pl.clientSignedAt).toLocaleString('en-IN', {dateStyle:'medium',timeStyle:'short'})}</div>` : ''}
+    ${pl.notes ? `<div style="font-size:13px;color:var(--muted);margin-top:10px;">${esc(pl.notes)}</div>` : ''}
+    <button class="btn btn-ghost" style="margin-top:16px;" onclick="printPunchCert()">🖨 Print Certificate</button>
+  </div>` : '';
+
+  el.innerHTML = `
+  <!-- Header & progress -->
+  <div class="pl-header">
+    <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;">
+        <div style="font-size:18px;font-weight:800;margin-bottom:2px;">${esc(pl.title)}</div>
+        <div style="font-size:12px;color:var(--muted);">Created by ${esc(pl.createdBy||'—')} · ${isComplete?'<span style="color:#22c55e;font-weight:600;">✅ Completed</span>':'<span style="color:#f97316;font-weight:600;">In Progress</span>'}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${!isComplete ? `<button class="btn btn-ghost" style="font-size:12px;" onclick="openPunchItemModal()">+ Add Item</button>` : ''}
+        ${!isComplete ? `<button class="btn btn-ghost" style="font-size:12px;" onclick="reimportPunchRooms()">↺ Sync Rooms</button>` : ''}
+        ${canComplete ? `<button class="btn btn-primary" style="background:#22c55e;font-size:13px;" onclick="openPunchSignOff()">✅ Complete & Sign Off</button>` : ''}
+      </div>
+    </div>
+    <div class="pl-progress-bar" style="margin-top:14px;">
+      <div class="pl-progress-fill" style="width:${pct}%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;">
+      <span>${pct}% complete</span>
+      <span>${passed}/${applicable} checks passed</span>
+    </div>
+    <div class="pl-stats">
+      <div class="pl-stat"><div class="pl-stat-val" style="color:#22c55e">${passed}</div><div class="pl-stat-lbl">Passed</div></div>
+      <div class="pl-stat"><div class="pl-stat-val" style="color:#ef4444">${failed}</div><div class="pl-stat-lbl">Failed</div></div>
+      <div class="pl-stat"><div class="pl-stat-val" style="color:#eab308">${pending}</div><div class="pl-stat-lbl">Pending</div></div>
+      <div class="pl-stat"><div class="pl-stat-val" style="color:var(--muted)">${naItems}</div><div class="pl-stat-lbl">N/A</div></div>
+      <div class="pl-stat"><div class="pl-stat-val">${total}</div><div class="pl-stat-lbl">Total</div></div>
+    </div>
+  </div>
+
+  ${failedSection}
+
+  <!-- Room groups -->
+  ${Object.keys(rooms).length === 0 ? `
+  <div style="text-align:center;color:var(--muted);padding:40px;font-size:14px;">
+    No items yet.
+    <br><br>
+    <button class="btn btn-primary" onclick="importAndRenderPunchRooms()">↓ Auto-Import Rooms from Survey</button>
+    <span style="color:var(--muted);margin:0 10px;font-size:12px;">or</span>
+    <button class="btn btn-ghost" onclick="openPunchItemModal()">+ Add Item Manually</button>
+  </div>` :
+  Object.entries(rooms).map(([room, roomItems]) => renderPunchRoom(room, roomItems, isComplete)).join('')
+  }
+
+  ${certSection}
+  `;
+}
+
+function renderPunchRoom(room, items, isComplete) {
+  const pass    = items.filter(i => i.status === 'pass').length;
+  const fail    = items.filter(i => i.status === 'fail').length;
+  const na      = items.filter(i => i.status === 'na').length;
+  const pending = items.filter(i => i.status === 'pending').length;
+  const applicable = items.length - na;
+  const pct = applicable > 0 ? Math.round((pass / applicable) * 100) : 100;
+  const collapsed = window._plCollapsed[room] !== false; // default expanded
+  const collapseKey = encodeURIComponent(room);
+
+  return `
+  <div class="pl-room" id="plroom-${collapseKey}">
+    <div class="pl-room-header" onclick="togglePunchRoom('${collapseKey}')">
+      <div class="pl-room-title">📍 ${esc(room)}</div>
+      <div class="pl-room-badges">
+        ${pass  > 0 ? `<span style="font-size:11px;font-weight:700;color:#22c55e;">✅ ${pass}</span>` : ''}
+        ${fail  > 0 ? `<span style="font-size:11px;font-weight:700;color:#ef4444;">❌ ${fail}</span>` : ''}
+        ${pending > 0 ? `<span style="font-size:11px;color:var(--muted);">⏳ ${pending}</span>` : ''}
+        <span class="pl-room-pct">${pct}%</span>
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" id="plchev-${collapseKey}" style="transform:rotate(${window._plCollapsed[room]===true?'0':'180'}deg);transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+    <div style="padding:4px 16px 8px;background:var(--surface2);">
+      <div class="pl-room-bar"><div class="pl-room-bar-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div id="plitems-${collapseKey}" style="display:${window._plCollapsed[room]===true?'none':'block'}">
+      ${items.map(item => renderPunchItem(item, isComplete)).join('')}
+      ${!isComplete ? `
+      <div style="padding:8px 16px 12px;">
+        <button class="btn btn-ghost" style="font-size:11px;padding:4px 12px;width:100%;border-style:dashed;"
+          onclick="openPunchItemModal('${esc(room).replace(/'/g,"\\'")}')">+ Add item to ${esc(room)}</button>
+      </div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderPunchItem(item, isComplete) {
+  let photos = [];
+  try { photos = JSON.parse(item.photos_json || '[]'); } catch(e) {}
+  const photoThumb = photos.length > 0
+    ? `<img src="${photos[0].url||photos[0]}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;flex-shrink:0;cursor:pointer;" onclick="window.open('${photos[0].url||photos[0]}','_blank')">`
+    : '';
+
+  const checkedMeta = item.checkedBy
+    ? `<div class="pl-item-meta">Checked by ${esc(item.checkedBy)}${item.checkedAt ? ' · ' + new Date(item.checkedAt).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'}) : ''}</div>`
+    : '';
+
+  const notesEl = !isComplete
+    ? `<textarea class="pl-notes-input" rows="1" placeholder="Notes…" id="plnotes-${item.id}"
+        onblur="savePunchNote(${item.id}, this.value)">${esc(item.notes||'')}</textarea>`
+    : (item.notes ? `<div style="font-size:11px;color:var(--muted);margin-top:3px;font-style:italic;">${esc(item.notes)}</div>` : '');
+
+  const statusBtns = isComplete
+    ? `<span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;
+         ${item.status==='pass'?'color:#22c55e;background:rgba(34,197,94,.1);':item.status==='fail'?'color:#ef4444;background:rgba(239,68,68,.1);':'color:var(--muted);background:var(--surface2);'}">
+         ${item.status==='pass'?'✅ Pass':item.status==='fail'?'❌ Fail':'N/A'}</span>`
+    : `<div class="pl-status-btns">
+        <button class="pl-btn pass ${item.status==='pass'?'active':''}" onclick="setPunchStatus(${item.id},'pass')">✅</button>
+        <button class="pl-btn fail ${item.status==='fail'?'active':''}" onclick="setPunchStatus(${item.id},'fail')">❌</button>
+        <button class="pl-btn na ${item.status==='na'?'active':''}" onclick="setPunchStatus(${item.id},'na')">N/A</button>
+        <label class="pl-btn" style="position:relative;overflow:hidden;cursor:pointer;" title="Upload photo">
+          📷<input type="file" accept="image/*" style="position:absolute;opacity:0;width:0;height:0;" onchange="uploadPunchPhoto(${item.id},this)">
+        </label>
+        <button class="pl-btn" style="color:var(--red);border-color:rgba(239,68,68,.3);" onclick="deletePunchItem(${item.id})" title="Delete">🗑</button>
+      </div>`;
+
+  return `
+  <div class="pl-item" id="plitem-${item.id}">
+    ${photoThumb}
+    <div style="flex:1;min-width:0;">
+      <div class="pl-item-name">${esc(item.itemName)}</div>
+      ${item.description ? `<div class="pl-item-desc">${esc(item.description)}</div>` : ''}
+      ${notesEl}
+      ${checkedMeta}
+    </div>
+    ${statusBtns}
+  </div>`;
+}
+
+function togglePunchRoom(key) {
+  const room = decodeURIComponent(key);
+  const panel = document.getElementById(`plitems-${key}`);
+  const chev  = document.getElementById(`plchev-${key}`);
+  if (!panel) return;
+  const isHidden = panel.style.display === 'none';
+  panel.style.display = isHidden ? 'block' : 'none';
+  window._plCollapsed[room] = !isHidden;
+  if (chev) chev.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+
+async function setPunchStatus(itemId, status) {
+  // Optimistic UI
+  const btn = document.querySelector(`#plitem-${itemId} .pl-btn.${status}`);
+  // Actually call API
+  try {
+    const r = await fetch(`${API}/api/punch-items/${itemId}`, {
+      method: 'PUT', headers: jh(), body: JSON.stringify({ status })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    // Update local state
+    const item = window._punchItems.find(i => i.id === itemId);
+    if (item) {
+      item.status = status;
+      // Update checkedBy/checkedAt from current user
+      const u = JSON.parse(localStorage.getItem('agr_user') || '{}');
+      item.checkedBy = u.fullName || u.username || '';
+      item.checkedAt = new Date().toISOString();
+    }
+    if (window._punchList) window._punchList.completionPct = d.completionPct || 0;
+    renderPunchUI();
+  } catch(e) {
+    toast(e.message || 'Failed to update', 'error');
+  }
+}
+
+async function savePunchNote(itemId, notes) {
+  const item = window._punchItems.find(i => i.id === itemId);
+  if (!item || item.notes === notes) return;
+  try {
+    await fetch(`${API}/api/punch-items/${itemId}`, {
+      method: 'PUT', headers: jh(), body: JSON.stringify({ notes })
+    });
+    if (item) item.notes = notes;
+  } catch(e) {}
+}
+
+async function deletePunchItem(itemId) {
+  if (!confirm('Delete this checklist item?')) return;
+  try {
+    const r = await fetch(`${API}/api/punch-items/${itemId}`, { method: 'DELETE', headers: ah() });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    window._punchItems = window._punchItems.filter(i => i.id !== itemId);
+    if (window._punchList) window._punchList.completionPct = d.completionPct || 0;
+    toast('Item deleted', 'success');
+    renderPunchUI();
+  } catch(e) {
+    toast(e.message || 'Failed', 'error');
+  }
+}
+
+async function uploadPunchPhoto(itemId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const r = await fetch(`${API}/api/punch-items/${itemId}/upload`, { method: 'POST', headers: ah(), body: fd });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Upload failed');
+    // Update local photo list
+    const item = window._punchItems.find(i => i.id === itemId);
+    if (item) {
+      let arr = []; try { arr = JSON.parse(item.photos_json || '[]'); } catch {}
+      arr.push({ url: d.url, caption: file.name });
+      item.photos_json = JSON.stringify(arr);
+    }
+    toast('Photo uploaded', 'success');
+    renderPunchUI();
+  } catch(e) {
+    toast(e.message || 'Upload failed', 'error');
+  }
+}
+
+async function createPunchList() {
+  try {
+    const r = await fetch(`${API}/api/projects/${projectId}/punch-list`, {
+      method: 'POST', headers: jh(), body: JSON.stringify({ title: 'Final Handover Checklist' })
+    });
+    const d = await r.json();
+    if (!r.ok && r.status !== 409) throw new Error(d.error || 'Failed');
+    const plId = d.id;
+    window._plLoaded = false;
+    // Auto-import rooms
+    toast('Punch list created! Importing rooms…', 'success');
+    await fetch(`${API}/api/punch-lists/${plId}/items/import`, {
+      method: 'POST', headers: jh(), body: JSON.stringify({})
+    });
+    await loadPunchListTab();
+  } catch(e) {
+    toast(e.message || 'Failed', 'error');
+  }
+}
+
+async function importAndRenderPunchRooms() {
+  if (!window._punchList) return;
+  const btn = event?.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'Importing…'; }
+  try {
+    const r = await fetch(`${API}/api/punch-lists/${window._punchList.id}/items/import`, {
+      method: 'POST', headers: jh(), body: JSON.stringify({})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    toast(`Imported ${d.created} items across ${d.rooms?.length || 0} rooms`, 'success');
+    window._plLoaded = false;
+    await loadPunchListTab();
+  } catch(e) {
+    toast(e.message || 'Failed', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = '↓ Auto-Import Rooms from Survey'; }
+  }
+}
+
+async function reimportPunchRooms() {
+  if (!window._punchList) return;
+  try {
+    const r = await fetch(`${API}/api/punch-lists/${window._punchList.id}/items/import`, {
+      method: 'POST', headers: jh(), body: JSON.stringify({})
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    toast(`Synced: ${d.created} new items added`, 'success');
+    window._plLoaded = false;
+    await loadPunchListTab();
+  } catch(e) { toast(e.message || 'Failed', 'error'); }
+}
+
+function openPunchItemModal(presetRoom) {
+  document.getElementById('pl-new-room').value = presetRoom || '';
+  document.getElementById('pl-new-item').value = '';
+  document.getElementById('pl-new-desc').value = '';
+  // Populate room datalist
+  const dl = document.getElementById('pl-room-suggestions');
+  if (dl) {
+    const rooms = [...new Set(window._punchItems.map(i => i.roomArea))];
+    dl.innerHTML = rooms.map(r => `<option value="${esc(r)}">`).join('');
+  }
+  document.getElementById('pl-additem-overlay').classList.add('open');
+}
+
+function closePunchItemModal() {
+  document.getElementById('pl-additem-overlay').classList.remove('open');
+}
+
+async function submitAddPunchItem() {
+  const roomArea = document.getElementById('pl-new-room').value.trim();
+  const itemName = document.getElementById('pl-new-item').value.trim();
+  const description = document.getElementById('pl-new-desc').value.trim();
+  if (!roomArea || !itemName) { toast('Room and item name are required', 'error'); return; }
+  if (!window._punchList) return;
+  const btn = document.getElementById('pl-additem-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Adding…'; }
+  try {
+    const r = await fetch(`${API}/api/punch-lists/${window._punchList.id}/items`, {
+      method: 'POST', headers: jh(), body: JSON.stringify({ roomArea, itemName, description: description||'' })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    closePunchItemModal();
+    toast('Item added', 'success');
+    window._plLoaded = false;
+    await loadPunchListTab();
+  } catch(e) {
+    toast(e.message || 'Failed', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Add Item'; }
+  }
+}
+
+function openPunchSignOff() {
+  document.getElementById('pl-client-name').value = '';
+  document.getElementById('pl-client-sig').value = '';
+  document.getElementById('pl-handover-notes').value = '';
+  document.getElementById('pl-signoff-overlay').classList.add('open');
+}
+
+function closePunchSignOff() {
+  document.getElementById('pl-signoff-overlay').classList.remove('open');
+}
+
+async function submitPunchSignOff() {
+  const clientName = document.getElementById('pl-client-name').value.trim();
+  const clientSig  = document.getElementById('pl-client-sig').value.trim();
+  const notes      = document.getElementById('pl-handover-notes').value.trim();
+  if (!clientName) { toast('Client name is required', 'error'); return; }
+  if (!clientSig)  { toast('Signature is required — type client name', 'error'); return; }
+  const btn = document.getElementById('pl-signoff-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    const r = await fetch(`${API}/api/punch-lists/${window._punchList.id}/complete`, {
+      method: 'POST', headers: jh(),
+      body: JSON.stringify({ clientName, clientSignature: `${clientName} — ${clientSig}`, notes: notes||null })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    closePunchSignOff();
+    toast('🎉 Project handed over successfully!', 'success');
+    window._plLoaded = false;
+    await loadPunchListTab();
+    // Refresh project header status
+    if (typeof quickUpdateStatus === 'function') {
+      const sel = document.getElementById('status-select');
+      if (sel) sel.value = 'completed';
+    }
+  } catch(e) {
+    toast(e.message || 'Failed', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Complete & Hand Over'; }
+  }
+}
+
+async function raiseIssueFromPunch(punchItemId) {
+  const punchItem = window._punchItems.find(i => i.id === punchItemId);
+  if (!punchItem) return;
+  // Switch to issues tab and open issue modal pre-filled
+  showTab('issues', document.getElementById('issues-tab-btn'));
+  await new Promise(r => setTimeout(r, 300));
+  // Pre-fill the issue modal
+  await openIssueModal();
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el && v) el.value = v; };
+  setVal('iss-title',    `Punch List Fail: ${punchItem.itemName}`);
+  setVal('iss-area',     punchItem.roomArea);
+  setVal('iss-priority', 'high');
+  setVal('iss-type',     'defect');
+  setVal('iss-desc',     `Failed during final punch list check.\nRoom: ${punchItem.roomArea}\nItem: ${punchItem.itemName}${punchItem.notes?' — Notes: '+punchItem.notes:''}`);
+}
+
+function printPunchCert() {
+  const pl    = window._punchList;
+  const items = window._punchItems;
+  const pass  = items.filter(i => i.status === 'pass').length;
+  const total = items.length;
+  const html = `<!DOCTYPE html><html><head><title>Handover Certificate</title>
+  <style>body{font-family:Georgia,serif;max-width:700px;margin:40px auto;padding:0 20px;color:#111;}
+  h1{text-align:center;font-size:28px;color:#166534;margin-bottom:4px;}
+  .sub{text-align:center;color:#555;margin-bottom:30px;}
+  .sig{border-top:2px solid #166534;display:inline-block;padding:2px 40px;font-style:italic;font-size:20px;margin:20px 0 4px;}
+  table{width:100%;border-collapse:collapse;margin:20px 0;font-size:13px;}
+  th,td{border:1px solid #ddd;padding:7px 10px;text-align:left;}
+  th{background:#f0fdf4;}
+  .pass{color:#166534;font-weight:700;} .fail{color:#dc2626;} .na{color:#888;}
+  @media print{button{display:none}}</style></head><body>
+  <h1>✅ Project Handover Certificate</h1>
+  <div class="sub">Final Punch List Completed — ${new Date(pl.clientSignedAt||pl.updatedAt).toLocaleDateString('en-IN',{dateStyle:'long'})}</div>
+  <p><strong>Project:</strong> ${esc(project?.projectName||'')}</p>
+  <p><strong>Client:</strong> ${esc(pl.clientSignature||'')}</p>
+  <p><strong>Completion:</strong> ${pass}/${total} items passed</p>
+  ${pl.notes ? `<p><strong>Notes:</strong> ${esc(pl.notes)}</p>` : ''}
+  <table><tr><th>Room</th><th>Item</th><th>Status</th><th>Notes</th></tr>
+  ${items.map(i=>`<tr><td>${esc(i.roomArea)}</td><td>${esc(i.itemName)}</td>
+    <td class="${i.status}">${i.status==='pass'?'✅ Pass':i.status==='fail'?'❌ Fail':'N/A'}</td>
+    <td>${esc(i.notes||'')}</td></tr>`).join('')}
+  </table>
+  <div style="text-align:center;margin-top:40px;">
+    <div class="sig">${esc(pl.clientSignature||'')}</div>
+    <div style="font-size:12px;color:#555;">Client Signature · ${new Date(pl.clientSignedAt||pl.updatedAt).toLocaleDateString('en-IN')}</div>
+  </div>
+  <button onclick="window.print()" style="display:block;margin:30px auto;padding:10px 30px;background:#166534;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;">🖨 Print</button>
+  </body></html>`;
+  const win = window.open('', '_blank');
+  if (win) { win.document.write(html); win.document.close(); }
 }
 
 // ── Issue Tracker ─────────────────────────────────────────────────────────────
