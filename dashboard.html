@@ -4,147 +4,130 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A.G.R Automation — Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   :root {
-    --bg: #0f172a;
-    --surface: #1e293b;
-    --surface2: #273549;
-    --border: #334155;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --green: #22c55e;
-    --yellow: #eab308;
-    --red: #ef4444;
-    --orange: #f97316;
-    --purple: #a855f7;
-    --radius: 10px;
-    --sidebar-w: 220px;
+    --bg:#0f172a; --surface:#1e293b; --surface2:#273549; --border:#334155;
+    --text:#e2e8f0; --muted:#94a3b8; --accent:#3b82f6; --accent-hover:#2563eb;
+    --green:#22c55e; --yellow:#eab308; --red:#ef4444; --orange:#f97316;
+    --purple:#a855f7; --cyan:#06b6d4; --radius:10px; --sidebar-w:220px;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
 
   /* Sidebar */
-  .sidebar { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; transition: transform .25s; }
-  .sidebar-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--border); }
-  .sidebar-logo .brand { font-size: 17px; font-weight: 700; color: var(--text); letter-spacing: -.3px; }
-  .sidebar-logo .tagline { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
-  .nav-section { font-size: 10px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; padding: 14px 10px 6px; }
-  .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; color: var(--muted); text-decoration: none; font-size: 13.5px; font-weight: 500; transition: all .15s; cursor: pointer; margin-bottom: 2px; }
-  .nav-link:hover { background: var(--surface2); color: var(--text); }
-  .nav-link.active { background: var(--accent); color: #fff; }
-  .nav-link svg { flex-shrink: 0; opacity: .85; }
-  .sidebar-footer { padding: 14px 8px; border-top: 1px solid var(--border); }
-  .user-pill { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 7px; }
-  .user-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-  .user-info { flex: 1; min-width: 0; }
-  .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .user-role { font-size: 11px; color: var(--muted); }
-  .logout-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 6px; border-radius: 6px; transition: all .15s; }
-  .logout-btn:hover { background: var(--surface2); color: var(--red); }
+  .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;transition:transform .25s;}
+  .sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border);}
+  .sidebar-logo .brand{font-size:17px;font-weight:700;color:var(--text);letter-spacing:-.3px;}
+  .sidebar-logo .tagline{font-size:11px;color:var(--muted);margin-top:2px;}
+  .sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto;}
+  .nav-section{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:14px 10px 6px;}
+  .nav-link{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500;transition:all .15s;cursor:pointer;margin-bottom:2px;}
+  .nav-link:hover{background:var(--surface2);color:var(--text);}
+  .nav-link.active{background:var(--accent);color:#fff;}
+  .nav-link svg{flex-shrink:0;opacity:.85;}
+  .sidebar-footer{padding:14px 8px;border-top:1px solid var(--border);}
+  .user-pill{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:7px;}
+  .user-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+  .user-info{flex:1;min-width:0;}
+  .user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .user-role{font-size:11px;color:var(--muted);}
+  .logout-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:6px;border-radius:6px;transition:all .15s;}
+  .logout-btn:hover{background:var(--surface2);color:var(--red);}
 
   /* Main */
-  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 50; }
-  .menu-toggle { display: none; background: none; border: none; color: var(--text); cursor: pointer; padding: 4px; border-radius: 6px; }
-  .topbar-title { font-size: 16px; font-weight: 600; }
-  .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-  .content { padding: 24px; flex: 1; }
-
-  /* Cards */
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; align-items: center; gap: 16px; }
-  .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .stat-info .label { font-size: 12px; color: var(--muted); font-weight: 500; }
-  .stat-info .value { font-size: 26px; font-weight: 700; margin-top: 2px; }
-  .stat-info .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-  /* Table */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .card-title { font-size: 14px; font-weight: 600; }
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { padding: 10px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-  td { padding: 11px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
-
-  /* Badges */
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-  .badge-draft { background: #1e293b; color: var(--muted); border: 1px solid var(--border); }
-  .badge-sent { background: rgba(59,130,246,.15); color: #60a5fa; }
-  .badge-accepted { background: rgba(34,197,94,.15); color: #4ade80; }
-  .badge-invoiced { background: rgba(168,85,247,.15); color: #c084fc; }
-  .badge-rejected { background: rgba(239,68,68,.15); color: #f87171; }
+  .main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:50;}
+  .menu-toggle{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:4px;border-radius:6px;}
+  .topbar-title{font-size:16px;font-weight:700;}
+  .topbar-date{font-size:12px;color:var(--muted);margin-left:4px;}
+  .topbar-actions{margin-left:auto;display:flex;align-items:center;gap:8px;}
+  .content{padding:24px;flex:1;}
 
   /* Buttons */
-  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 500; border: none; cursor: pointer; transition: all .15s; text-decoration: none; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent-hover); }
-  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s;text-decoration:none;font-family:inherit;}
+  .btn-primary{background:var(--accent);color:#fff;}
+  .btn-primary:hover{background:var(--accent-hover);}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border);}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);}
+  .btn-green{background:#16a34a;color:#fff;}
+  .btn-green:hover{background:#15803d;}
 
-  /* Empty state */
-  .empty { padding: 48px; text-align: center; color: var(--muted); font-size: 14px; }
+  /* KPI Cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:14px;margin-bottom:20px;}
+  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s;}
+  .kpi-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.3);}
+  .kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .kpi-card.green::before{background:var(--green);}
+  .kpi-card.blue::before{background:var(--accent);}
+  .kpi-card.orange::before{background:var(--orange);}
+  .kpi-card.purple::before{background:var(--purple);}
+  .kpi-card.yellow::before{background:var(--yellow);}
+  .kpi-card.red::before{background:var(--red);}
+  .kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:8px;}
+  .kpi-value{font-size:26px;font-weight:800;line-height:1;margin-bottom:4px;}
+  .kpi-sub{font-size:11px;color:var(--muted);}
+  .kpi-icon{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;opacity:.15;font-size:20px;}
 
-  /* Loading */
-  .loading { padding: 32px; text-align: center; color: var(--muted); font-size: 13px; }
-  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 8px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Alerts */
+  .alerts-section{margin-bottom:20px;}
+  .alert-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:8px;font-size:13px;font-weight:500;cursor:pointer;transition:opacity .15s;}
+  .alert-item:hover{opacity:.85;}
+  .alert-item.red{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;}
+  .alert-item.yellow{background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.25);color:#fde68a;}
+  .alert-item.blue{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.25);color:#93c5fd;}
+  .alert-item.orange{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.25);color:#fed7aa;}
 
-  /* Overlay */
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
-  .overlay.open { display: flex; }
+  /* Charts */
+  .charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px;}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .chart-title{font-size:14px;font-weight:700;margin-bottom:4px;}
+  .chart-sub{font-size:11px;color:var(--muted);margin-bottom:16px;}
+  .chart-wrap{position:relative;height:220px;}
 
-  /* BOQ panel flex layout */
-  #boq-panel { display: none; }
-  #boq-panel.open { display: flex !important; }
+  /* Bottom grid */
+  .bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .card-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;}
 
-  /* Mobile */
-  @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,.5); }
-    .main { margin-left: 0; }
-    .menu-toggle { display: block; }
-    .topbar { padding: 12px 16px; }
-    .content { padding: 16px; }
-    .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-    .stat-card { padding: 14px; }
-    .stat-info .value { font-size: 20px; }
-    #boq-panel { left: 0 !important; }
-    #boq-menu-toggle { display: flex !important; }
+  /* Activity feed */
+  .activity-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .activity-item:last-child{border-bottom:none;}
+  .activity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+  .activity-text{flex:1;font-size:12.5px;color:var(--text);line-height:1.4;}
+  .activity-meta{font-size:11px;color:var(--muted);white-space:nowrap;}
+  .activity-type{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:1px 6px;border-radius:3px;margin-right:4px;}
+
+  /* Projects table */
+  .proj-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .proj-table th{text-align:left;padding:8px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-bottom:1px solid var(--border);}
+  .proj-table td{padding:9px 10px;border-bottom:1px solid rgba(51,65,85,.4);vertical-align:middle;}
+  .proj-table tr:last-child td{border-bottom:none;}
+  .proj-table tr:hover td{background:rgba(255,255,255,.02);}
+  .status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+  /* Quick actions */
+  .quick-actions{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+  .quick-actions-title{font-size:13px;font-weight:600;color:var(--muted);margin-right:4px;}
+
+  /* Loading skeleton */
+  .skeleton{background:linear-gradient(90deg,var(--surface2) 25%,var(--border) 50%,var(--surface2) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;}
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  /* Responsive */
+  @media(max-width:900px){
+    .charts-grid{grid-template-columns:1fr;}
+    .bottom-grid{grid-template-columns:1fr;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr);}
   }
-  @media (max-width: 420px) {
-    .stats-grid { grid-template-columns: 1fr; }
+  @media(max-width:640px){
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);}
+    .main{margin-left:0;}
+    .menu-toggle{display:block;}
+    .kpi-grid{grid-template-columns:1fr 1fr;}
+    .content{padding:14px;}
   }
-
-  /* Quote detail drawer */
-  .drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 300; }
-  .drawer-backdrop.open { display: block; }
-  .drawer { position: fixed; top: 0; right: 0; height: 100vh; width: 500px; max-width: 100vw; background: var(--surface); border-left: 1px solid var(--border); z-index: 301; transform: translateX(100%); transition: transform .25s cubic-bezier(.4,0,.2,1); overflow-y: auto; display: flex; flex-direction: column; }
-  .drawer.open { transform: translateX(0); box-shadow: -8px 0 32px rgba(0,0,0,.4); }
-  .drawer-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; position: sticky; top: 0; background: var(--surface); z-index: 1; flex-shrink: 0; }
-  .drawer-title { font-size: 15px; font-weight: 700; flex: 1; font-family: monospace; color: var(--accent); }
-  .drawer-close { background: none; border: 1px solid var(--border); color: var(--muted); padding: 5px 12px; border-radius: 7px; cursor: pointer; font-size: 12px; font-family: inherit; transition: all .15s; }
-  .drawer-close:hover { background: var(--surface2); color: var(--text); }
-  .drawer-body { padding: 20px; flex: 1; }
-  .dr-section { margin-bottom: 20px; }
-  .dr-section-title { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
-  .dr-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,.04); }
-  .dr-row:last-child { border-bottom: none; }
-  .dr-label { color: var(--muted); flex-shrink: 0; }
-  .dr-value { font-weight: 500; text-align: right; max-width: 65%; word-break: break-word; }
-  .dr-items table { font-size: 12px; }
-  .dr-items th { font-size: 10px; padding: 7px 10px; }
-  .dr-items td { padding: 7px 10px; }
-  .dr-grand { display: flex; justify-content: space-between; align-items: center; background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.2); border-radius: 8px; padding: 12px 16px; margin-top: 12px; }
-  .dr-grand .label { font-size: 14px; font-weight: 600; }
-  .dr-grand .amount { font-size: 20px; font-weight: 800; color: var(--accent); font-family: monospace; }
-  .dr-remark { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 13px; color: var(--text); line-height: 1.6; }
-  tr.clickable { cursor: pointer; }
 </style>
 </head>
 <body>
@@ -152,44 +135,29 @@
 <!-- Sidebar -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="brand">A.G.R Automation</div>
-    <div class="tagline">BOQ Management System</div>
+    <div class="brand">⚡ A.G.R Automation</div>
+    <div class="tagline">CRM & Project Management</div>
   </div>
   <nav class="sidebar-nav">
     <div class="nav-section">Main</div>
-    <a href="dashboard.html" class="nav-link active">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-      Dashboard
+    <a class="nav-link active" href="dashboard.html">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard
     </a>
-    <a href="leads.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>
-      Leads
+    <a class="nav-link" href="projects.html">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Projects
     </a>
-    <a href="quotes.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-      Quotes
+    <a class="nav-link" href="leads.html">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>Leads
     </a>
-    <a href="clients.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Clients
+    <a class="nav-link" href="clients.html">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Clients
     </a>
-    <div class="nav-section">Work</div>
-    <a class="nav-link" onclick="openBOQ()" style="cursor:pointer">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-      BOQ System
+    <a class="nav-link" href="boq.html">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>New BOQ
     </a>
-    <a href="projects.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-      Projects
-    </a>
-    <a href="analytics.html" class="nav-link">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Analytics
-    </a>
-    <div class="nav-section" id="admin-section" style="display:none">Admin</div>
-    <a href="users.html" class="nav-link" id="users-link" style="display:none">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Users
+    <div class="nav-section">Admin</div>
+    <a class="nav-link" href="users.html" id="users-link" style="display:none">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>Users
     </a>
   </nav>
   <div class="sidebar-footer">
@@ -200,448 +168,393 @@
         <div class="user-role" id="user-role"></div>
       </div>
       <button class="logout-btn" onclick="logout()" title="Logout">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       </button>
     </div>
   </div>
 </aside>
 
-<!-- Mobile overlay -->
-<div class="overlay" id="mob-overlay" onclick="closeSidebar()"></div>
-
-<!-- BOQ iframe panel -->
-<div id="boq-panel" style="display:none;position:fixed;top:0;left:var(--sidebar-w);right:0;bottom:0;z-index:90;background:var(--bg);flex-direction:column;">
-  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;">
-    <button class="menu-toggle" onclick="toggleSidebar()" style="display:none" id="boq-menu-toggle">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <span style="font-size:14px;font-weight:700">BOQ Generator</span>
-    <button onclick="closeBOQ()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);padding:5px 12px;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all .15s" onmouseover="this.style.background='var(--surface2)';this.style.color='var(--text)'" onmouseout="this.style.background='none';this.style.color='var(--muted)'">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      Close
-    </button>
-  </div>
-  <iframe id="boq-frame" src="" style="width:100%;flex:1;border:none;" allow="same-origin"></iframe>
-</div>
-
-<!-- Main -->
 <div class="main">
-  <header class="topbar">
+  <div class="topbar">
     <button class="menu-toggle" onclick="toggleSidebar()">
       <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
-    <span class="topbar-title">Dashboard</span>
+    <div>
+      <div class="topbar-title">Dashboard</div>
+      <div class="topbar-date" id="dash-date"></div>
+    </div>
     <div class="topbar-actions">
-      <a href="quotes.html" class="btn btn-primary" style="font-size:12px;padding:7px 13px;">+ New Quote</a>
+      <button class="btn btn-ghost" style="font-size:12px;" onclick="location.reload()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Refresh
+      </button>
     </div>
-  </header>
+  </div>
 
-  <div class="content">
-    <div class="stats-grid" id="stats">
-      <div class="loading"><span class="spinner"></span>Loading stats…</div>
-    </div>
-
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header">
-        <span class="card-title">Recent Projects</span>
-        <a href="projects.html" class="btn btn-ghost" style="font-size:12px;padding:6px 12px;">View All</a>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Project</th>
-              <th>Client</th>
-              <th>Status</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody id="projects-tbody">
-            <tr><td colspan="4" class="loading"><span class="spinner"></span>Loading…</td></tr>
-          </tbody>
-        </table>
-      </div>
+  <div class="content" id="main-content">
+    <!-- KPI Cards -->
+    <div class="kpi-grid" id="kpi-grid">
+      <!-- Populated by JS -->
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
+      <div class="kpi-card skeleton" style="height:100px;"></div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">Legacy Quotes</span>
-        <a href="quotes.html" class="btn btn-ghost" style="font-size:12px;padding:6px 12px;">View All</a>
+    <!-- Alerts -->
+    <div id="alerts-section" class="alerts-section" style="display:none;"></div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions" style="margin-bottom:20px;">
+      <span class="quick-actions-title">Quick Actions:</span>
+      <a href="leads.html?new=1" class="btn btn-primary" style="font-size:12px;padding:7px 14px;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Lead
+      </a>
+      <a href="projects.html?new=1" class="btn btn-primary" style="font-size:12px;padding:7px 14px;background:#8b5cf6;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>New Project
+      </a>
+      <a href="boq.html" class="btn btn-primary" style="font-size:12px;padding:7px 14px;background:#f97316;">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Generate BOQ
+      </a>
+      <a href="projects.html" class="btn btn-ghost" style="font-size:12px;padding:7px 14px;">View All Projects →</a>
+    </div>
+
+    <!-- Charts 2×2 grid -->
+    <div class="charts-grid" id="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Revenue</div>
+        <div class="chart-sub">Payments received vs pipeline — last 6 months</div>
+        <div class="chart-wrap"><canvas id="chart-revenue"></canvas></div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Quote #</th>
-              <th>Client</th>
-              <th>Amount</th>
-              <th>Status</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody id="quotes-tbody">
-            <tr><td colspan="5" class="loading"><span class="spinner"></span>Loading…</td></tr>
-          </tbody>
+      <div class="chart-card">
+        <div class="chart-title">Project Status</div>
+        <div class="chart-sub">Distribution across all projects</div>
+        <div class="chart-wrap"><canvas id="chart-status"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Sales Pipeline</div>
+        <div class="chart-sub">Lead-to-win conversion funnel</div>
+        <div class="chart-wrap"><canvas id="chart-pipeline"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Top Products</div>
+        <div class="chart-sub">By order count across all quotes</div>
+        <div class="chart-wrap"><canvas id="chart-products"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Bottom: Activity + Recent Projects -->
+    <div class="bottom-grid">
+      <div class="card">
+        <div class="card-title">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Recent Activity
+        </div>
+        <div id="activity-feed">
+          <div style="color:var(--muted);font-size:13px;padding:12px 0;">Loading…</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Recent Projects
+          <a href="projects.html" style="margin-left:auto;font-size:11px;color:var(--accent);text-decoration:none;font-weight:500;">View All →</a>
+        </div>
+        <table class="proj-table" id="proj-table">
+          <thead><tr>
+            <th>Project</th><th>Client</th><th>Status</th><th style="text-align:right;">Budget</th>
+          </tr></thead>
+          <tbody><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
-</div>
-
-<!-- Quote detail drawer -->
-<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeQuoteDrawer()"></div>
-<div class="drawer" id="quote-drawer">
-  <div class="drawer-header">
-    <span class="drawer-title" id="drawer-title">Quote</span>
-    <button class="drawer-close" onclick="closeQuoteDrawer()">✕ Close</button>
-  </div>
-  <div class="drawer-body" id="drawer-body"></div>
 </div>
 
 <script>
 const API = 'https://agr-boq-backend.agrayush98.workers.dev';
 
-function getSession() { return localStorage.getItem('sessionId'); }
-function getUser() { try { return JSON.parse(localStorage.getItem('agr_user') || 'null'); } catch { return null; } }
+function getSession()  { return localStorage.getItem('sessionId'); }
+function getUser()     { try { return JSON.parse(localStorage.getItem('agr_user')||'{}'); } catch { return {}; } }
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
 
 async function logout() {
-  await fetch(`${API}/api/auth/logout`, { method: 'POST', headers: { 'X-Session-ID': getSession() } }).catch(() => {});
+  try { await fetch(`${API}/api/auth/logout`, { method:'POST', headers:{'X-Session-ID':getSession()} }); } catch {}
   localStorage.removeItem('sessionId');
   localStorage.removeItem('agr_user');
   location.href = 'login.html';
 }
 
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('mob-overlay').classList.toggle('open');
+// ── Formatters ────────────────────────────────────────────────────────────────
+function inr(v) {
+  const n = Number(v||0);
+  if (n >= 10000000) return '₹' + (n/10000000).toFixed(1) + ' Cr';
+  if (n >= 100000)   return '₹' + (n/100000).toFixed(1)   + ' L';
+  if (n >= 1000)     return '₹' + (n/1000).toFixed(0)     + 'K';
+  return '₹' + n.toLocaleString('en-IN');
 }
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('mob-overlay').classList.remove('open');
+function timeAgo(d) {
+  if (!d) return '';
+  const diff = (Date.now() - new Date(d)) / 1000;
+  if (diff < 60)   return 'just now';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400)return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
+}
+const STATUS_COLORS = {
+  survey_pending:'#eab308', survey_done:'#22c55e', boq_draft:'#3b82f6',
+  proposal_sent:'#a855f7', in_progress:'#f97316', on_hold:'#94a3b8',
+  completed:'#22c55e', rejected:'#ef4444', cancelled:'#64748b',
+  new:'#3b82f6', qualified:'#8b5cf6', lost:'#ef4444', converted:'#22c55e'
+};
+const STATUS_LABELS = {
+  survey_pending:'Survey Pending', survey_done:'Survey Done', boq_draft:'BOQ Draft',
+  proposal_sent:'Proposal Sent', in_progress:'In Progress', on_hold:'On Hold',
+  completed:'Completed', rejected:'Rejected', cancelled:'Cancelled'
+};
+
+// ── KPI Render ────────────────────────────────────────────────────────────────
+function renderKPIs(kpis) {
+  const cards = [
+    { label:'Total Revenue',      value: inr(kpis.revenue),         sub:'From accepted proposals', cls:'green',  icon:'💰' },
+    { label:'Pipeline Value',     value: inr(kpis.pipelineValue),   sub:'Proposals sent / pending', cls:'blue',  icon:'📈' },
+    { label:'Active Projects',    value: kpis.activeProjects,       sub:'Excluding completed',      cls:'orange', icon:'🏗' },
+    { label:'Open Leads',         value: kpis.openLeads,            sub:'New + qualified',          cls:'purple', icon:'👤' },
+    { label:'Pending Payments',   value: inr(kpis.pendingPayments), sub:'Awaiting receipt',         cls:'yellow', icon:'⏳' },
+    { label:'Open Issues',        value: kpis.openIssues,           sub:'Open + in progress',       cls:'red',    icon:'⚠' },
+  ];
+  document.getElementById('kpi-grid').innerHTML = cards.map(c => `
+    <div class="kpi-card ${c.cls}">
+      <div class="kpi-icon">${c.icon}</div>
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${c.value}</div>
+      <div class="kpi-sub">${c.sub}</div>
+    </div>`).join('');
 }
 
-function openBOQ() {
-  const panel = document.getElementById('boq-panel');
-  const frame = document.getElementById('boq-frame');
-  if (!frame.src || frame.src === 'about:blank') {
-    frame.src = 'boq.html';
+// ── Alerts Render ─────────────────────────────────────────────────────────────
+function renderAlerts(alerts) {
+  const sec = document.getElementById('alerts-section');
+  const items = [
+    { count: alerts.overduePayments,     msg: `${alerts.overduePayments} overdue payment${alerts.overduePayments>1?'s':''}`,            cls:'red',    icon:'⚠', href:'projects.html' },
+    { count: alerts.criticalIssues,      msg: `${alerts.criticalIssues} critical issue${alerts.criticalIssues>1?'s':''} open`,           cls:'red',    icon:'🔴', href:'projects.html' },
+    { count: alerts.pendingChangeOrders, msg: `${alerts.pendingChangeOrders} pending change order${alerts.pendingChangeOrders>1?'s':''}`, cls:'yellow', icon:'📋', href:'projects.html' },
+    { count: alerts.pendingProposals,    msg: `${alerts.pendingProposals} proposal${alerts.pendingProposals>1?'s':''} awaiting response`, cls:'blue',   icon:'📨', href:'projects.html' },
+    { count: alerts.overdueTasks,        msg: `${alerts.overdueTasks} task${alerts.overdueTasks>1?'s':''} overdue`,                      cls:'orange', icon:'⏰', href:'projects.html' },
+  ].filter(a => a.count > 0);
+
+  if (items.length === 0) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  sec.innerHTML = `
+    <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;">Requires Attention</div>
+    ${items.map(a => `<div class="alert-item ${a.cls}" onclick="location.href='${a.href}'">${a.icon} ${a.msg} <span style="margin-left:auto;font-size:11px;opacity:.7;">→</span></div>`).join('')}`;
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+const CHART_DEFAULTS = {
+  plugins: { legend: { labels: { color:'#94a3b8', font:{ size:11 }, boxWidth:12 } } },
+  scales: {
+    x: { ticks:{ color:'#64748b', font:{size:10} }, grid:{ color:'rgba(51,65,85,.5)' } },
+    y: { ticks:{ color:'#64748b', font:{size:10} }, grid:{ color:'rgba(51,65,85,.5)' } }
   }
-  panel.classList.add('open');
-  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-  document.querySelector('.nav-link[onclick="openBOQ()"]').classList.add('active');
-  closeSidebar();
-}
+};
 
-function closeBOQ() {
-  document.getElementById('boq-panel').classList.remove('open');
-  document.querySelector('.nav-link[onclick="openBOQ()"]')?.classList.remove('active');
-  document.querySelector('.nav-link[href="dashboard.html"]')?.classList.add('active');
-}
-
-function fmt(n) { return '₹' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
-
-const PROJECT_STATUS_LABELS = { survey_pending:'Survey Pending', survey_done:'Survey Done', boq_draft:'BOQ Draft', proposal_sent:'Proposal Sent', accepted:'Accepted', rejected:'Rejected', execution:'In Execution', completed:'Completed' };
-const PROJECT_STATUS_COLORS = { survey_pending:'badge-draft', survey_done:'badge-sent', boq_draft:'badge-draft', proposal_sent:'badge-sent', accepted:'badge-accepted', rejected:'badge-rejected', execution:'badge-invoiced', completed:'badge-accepted' };
-
-function statusBadge(s, isProject=false) {
-  if (isProject) return `<span class="badge ${PROJECT_STATUS_COLORS[s]||'badge-draft'}">${PROJECT_STATUS_LABELS[s]||s}</span>`;
-  const map = { draft: 'badge-draft', sent: 'badge-sent', accepted: 'badge-accepted', invoiced: 'badge-invoiced', rejected: 'badge-rejected' };
-  return `<span class="badge ${map[s] || 'badge-draft'}">${s}</span>`;
-}
-
-function fmtDate(d) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
-}
-
-async function init() {
-  if (!getSession()) { location.href = 'login.html'; return; }
-  const user = getUser();
-  if (user) {
-    document.getElementById('user-name').textContent = user.fullName || user.username;
-    document.getElementById('user-role').textContent = user.role;
-    document.getElementById('avatar').textContent = (user.fullName || user.username || '?')[0].toUpperCase();
-    if (user.role === 'admin') {
-      document.getElementById('admin-section').style.display = '';
-      document.getElementById('users-link').style.display = '';
+function initRevenueChart(data) {
+  new Chart(document.getElementById('chart-revenue'), {
+    type: 'bar',
+    data: {
+      labels: data.labels,
+      datasets: [
+        { label:'Received', data: data.received, backgroundColor:'rgba(34,197,94,.7)', borderColor:'#22c55e', borderWidth:1, borderRadius:4 },
+        { label:'Pipeline', data: data.pipeline, backgroundColor:'rgba(59,130,246,.4)', borderColor:'#3b82f6', borderWidth:1, borderRadius:4 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ color:'#94a3b8', font:{size:11}, boxWidth:12 } } },
+      scales:{
+        x:{ ticks:{color:'#64748b',font:{size:10}}, grid:{color:'rgba(51,65,85,.4)'}, stacked:false },
+        y:{ ticks:{color:'#64748b',font:{size:10},callback:v=>'₹'+(v>=100000?(v/100000).toFixed(0)+'L':v>=1000?(v/1000).toFixed(0)+'K':v)}, grid:{color:'rgba(51,65,85,.4)'}  }
+      }
     }
-  }
+  });
+}
 
-  const h = { 'X-Session-ID': getSession() };
-
-  // Fetch CRM stats + recent projects + legacy quotes in parallel
-  const [statsData, quotesData] = await Promise.all([
-    fetch(`${API}/api/dashboard/stats`, { headers: h }).then(r => r.json()).catch(() => null),
-    fetch(`${API}/api/quotes`, { headers: h }).then(r => r.json()).catch(() => ({ quotes: [] })),
-  ]);
-
-  // ── Stats cards ──
-  if (statsData) {
-    document.getElementById('stats').innerHTML = `
-      <div class="stat-card">
-        <div class="stat-icon" style="background:rgba(59,130,246,.15)">
-          <svg width="20" height="20" fill="none" stroke="#60a5fa" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-        </div>
-        <div class="stat-info">
-          <div class="label">Active Projects</div>
-          <div class="value">${statsData.activeProjects || 0}</div>
-          <div class="sub">${statsData.totalProjects || 0} total</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:rgba(168,85,247,.15)">
-          <svg width="20" height="20" fill="none" stroke="#c084fc" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-        </div>
-        <div class="stat-info">
-          <div class="label">Pipeline Value</div>
-          <div class="value" style="font-size:17px">${fmt(statsData.pipelineValue)}</div>
-          <div class="sub">From sent proposals</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:rgba(34,197,94,.15)">
-          <svg width="20" height="20" fill="none" stroke="#4ade80" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/><circle cx="12" cy="12" r="10"/></svg>
-        </div>
-        <div class="stat-info">
-          <div class="label">Revenue</div>
-          <div class="value" style="font-size:17px">${fmt(statsData.revenue)}</div>
-          <div class="sub">Accepted proposals</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon" style="background:rgba(234,179,8,.15)">
-          <svg width="20" height="20" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>
-        </div>
-        <div class="stat-info">
-          <div class="label">Active Leads</div>
-          <div class="value">${statsData.activeLeads || 0}</div>
-          <div class="sub">${statsData.totalLeads || 0} total</div>
-        </div>
-      </div>
-    `;
-
-    // ── Recent Projects ──
-    const projects = statsData.recentProjects || [];
-    const ptbody = document.getElementById('projects-tbody');
-    if (!projects.length) {
-      ptbody.innerHTML = '<tr><td colspan="4" class="empty">No projects yet — <a href="leads.html" style="color:var(--accent)">convert a lead</a></td></tr>';
-    } else {
-      ptbody.innerHTML = projects.map(p => `
-        <tr class="clickable" onclick="location.href='project-detail.html?id=${p.id}'">
-          <td style="font-weight:600">${p.projectName || '—'}</td>
-          <td style="color:var(--muted)">${p.clientName || '—'}</td>
-          <td>${statusBadge(p.status, true)}</td>
-          <td style="color:var(--muted)">${fmtDate(p.createdAt)}</td>
-        </tr>`).join('');
+function initStatusChart(statusCounts) {
+  const entries = Object.entries(statusCounts).filter(([,v])=>v>0);
+  const COLORS = ['#3b82f6','#22c55e','#f97316','#a855f7','#eab308','#ef4444','#06b6d4','#64748b'];
+  new Chart(document.getElementById('chart-status'), {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(([k]) => STATUS_LABELS[k]||k),
+      datasets:[{ data: entries.map(([,v])=>v), backgroundColor: entries.map(([k])=>STATUS_COLORS[k]||'#64748b'), borderColor:'#1e293b', borderWidth:2, hoverOffset:6 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'right', labels:{ color:'#94a3b8', font:{size:10}, boxWidth:12, padding:8 } } },
+      cutout:'60%'
     }
-  } else {
-    document.getElementById('stats').innerHTML = '<div class="empty" style="grid-column:1/-1">Failed to load stats</div>';
-    document.getElementById('projects-tbody').innerHTML = '<tr><td colspan="4" class="empty">Failed to load</td></tr>';
-  }
+  });
+}
 
-  // ── Legacy Quotes ──
-  const quotes = (quotesData.quotes || []).slice(0, 10);
-  window._dashQuotes = quotes;
-  const tbody = document.getElementById('quotes-tbody');
-  if (!quotes.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="empty">No legacy quotes</td></tr>';
+function initPipelineChart(funnel) {
+  new Chart(document.getElementById('chart-pipeline'), {
+    type: 'bar',
+    data: {
+      labels: funnel.map(f=>f.stage),
+      datasets:[{ label:'Count', data: funnel.map(f=>f.count),
+        backgroundColor: funnel.map(f=>f.color||'#3b82f6'), borderRadius:4, borderWidth:0 }]
+    },
+    options: {
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{color:'#64748b',font:{size:10}}, grid:{color:'rgba(51,65,85,.4)'}, beginAtZero:true },
+        y:{ ticks:{color:'#94a3b8',font:{size:11}}, grid:{display:false} }
+      }
+    }
+  });
+}
+
+function initProductsChart(products) {
+  const top5 = (products||[]).slice(0,5);
+  new Chart(document.getElementById('chart-products'), {
+    type: 'bar',
+    data: {
+      labels: top5.map(p => (p.productName||'').substring(0,24)),
+      datasets:[{ label:'Orders', data: top5.map(p=>p.orderCount||0),
+        backgroundColor:'rgba(168,85,247,.6)', borderColor:'#a855f7', borderWidth:1, borderRadius:4 }]
+    },
+    options: {
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false } },
+      scales:{
+        x:{ ticks:{color:'#64748b',font:{size:10}}, grid:{color:'rgba(51,65,85,.4)'}, beginAtZero:true },
+        y:{ ticks:{color:'#94a3b8',font:{size:10}}, grid:{display:false} }
+      }
+    }
+  });
+}
+
+// ── Activity Feed ─────────────────────────────────────────────────────────────
+const UPDATE_TYPE_COLORS = {
+  milestone:'#22c55e', issue:'#ef4444', photo:'#3b82f6',
+  note:'#94a3b8', payment:'#eab308', delay:'#f97316'
+};
+function renderActivityFeed(activity) {
+  const el = document.getElementById('activity-feed');
+  if (!activity || activity.length === 0) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px 0;">No recent activity.</div>';
     return;
   }
-  tbody.innerHTML = quotes.map((q, i) => {
-    const client = typeof q.client === 'object' ? q.client : JSON.parse(q.client || '{}');
-    return `<tr class="clickable" onclick="openQuoteDrawer(${i})">
-      <td><span style="font-family:monospace;font-size:12px;color:var(--accent)">${q.quoteNumber}</span></td>
-      <td>${client.name || '—'}</td>
-      <td style="font-weight:600">${fmt(q.grandTotal)}</td>
-      <td>${statusBadge(q.status)}</td>
-      <td style="color:var(--muted)">${fmtDate(q.createdAt)}</td>
+  el.innerHTML = activity.map(a => {
+    const color = UPDATE_TYPE_COLORS[a.type] || '#64748b';
+    const content = (a.content||'').substring(0,80) + ((a.content||'').length>80?'…':'');
+    return `<div class="activity-item">
+      <div class="activity-dot" style="background:${color};"></div>
+      <div class="activity-text">
+        <span class="activity-type" style="background:${color}22;color:${color};">${a.type||'update'}</span>
+        ${content}
+        ${a.projectName ? `<span style="color:var(--muted);font-size:11px;"> — ${a.projectName}</span>` : ''}
+      </div>
+      <div class="activity-meta">${timeAgo(a.createdAt)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Recent Projects Table ─────────────────────────────────────────────────────
+function renderProjectsTable(projects) {
+  const tbody = document.querySelector('#proj-table tbody');
+  if (!projects || projects.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px;">No projects yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = projects.map(p => {
+    const sc = STATUS_COLORS[p.status] || '#64748b';
+    const sl = STATUS_LABELS[p.status] || p.status;
+    const bgt = p.budget ? inr(p.budget) : '—';
+    return `<tr onclick="location.href='project-detail.html?id=${p.id}'" style="cursor:pointer;">
+      <td><strong>${p.projectName||'Untitled'}</strong></td>
+      <td style="color:var(--muted);">${p.clientName||'—'}</td>
+      <td><span class="status-dot" style="background:${sc}"></span><span style="font-size:11px;">${sl}</span></td>
+      <td style="text-align:right;font-weight:600;">${bgt}</td>
     </tr>`;
   }).join('');
 }
 
-let _drawerQuoteNum = '';
-
-function openQuoteDrawer(i) {
-  const q = window._dashQuotes[i];
-  if (!q) return;
-  _drawerQuoteNum = q.quoteNumber;
-  const client = typeof q.client === 'object' ? q.client : JSON.parse(q.client || '{}');
-  const items = typeof q.items === 'string' ? JSON.parse(q.items || '[]') : (q.items || []);
-  const date = new Date(q.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
-
-  document.getElementById('drawer-title').textContent = q.quoteNumber;
-  document.getElementById('drawer-body').innerHTML = `
-    <div class="dr-section">
-      <div class="dr-section-title">Client</div>
-      <div class="dr-row"><span class="dr-label">Name</span><span class="dr-value">${client.name || '—'}</span></div>
-      ${client.contact ? `<div class="dr-row"><span class="dr-label">Contact</span><span class="dr-value">${client.contact}</span></div>` : ''}
-      ${client.email ? `<div class="dr-row"><span class="dr-label">Email</span><span class="dr-value">${client.email}</span></div>` : ''}
-      ${client.city ? `<div class="dr-row"><span class="dr-label">Location</span><span class="dr-value">${[client.city, client.state].filter(Boolean).join(', ')}</span></div>` : ''}
-      ${client.gstin ? `<div class="dr-row"><span class="dr-label">GSTIN</span><span class="dr-value" style="font-family:monospace;font-size:12px">${client.gstin}</span></div>` : ''}
-    </div>
-    ${items.length ? `
-    <div class="dr-section dr-items">
-      <div class="dr-section-title">Items (${items.length})</div>
-      <div class="table-wrap" style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
-        <table>
-          <thead><tr><th>Product</th><th>Qty</th><th>Total</th></tr></thead>
-          <tbody>${items.map(it => `<tr>
-            <td style="max-width:200px">${it.itemName || it.name || ''}</td>
-            <td style="color:var(--muted)">${it.quantity}</td>
-            <td style="font-family:monospace">₹${fmt(it.quantity * (it.unitRate || it.rate || 0))}</td>
-          </tr>`).join('')}</tbody>
-        </table>
-      </div>
-    </div>` : ''}
-    <div class="dr-section">
-      <div class="dr-section-title">Financials</div>
-      ${q.discount ? `<div class="dr-row"><span class="dr-label" style="color:#f87171">Discount</span><span class="dr-value" style="color:#f87171">– ₹${fmt(q.discount)}</span></div>` : ''}
-      <div class="dr-row"><span class="dr-label">GST (18%)</span><span class="dr-value">₹${fmt(q.totalGST)}</span></div>
-      <div class="dr-row"><span class="dr-label">Installation (10%)</span><span class="dr-value">₹${fmt(q.installation)}</span></div>
-      <div class="dr-row"><span class="dr-label">Commissioning (5%)</span><span class="dr-value">₹${fmt(q.commissioning)}</span></div>
-      <div class="dr-grand"><span class="label">Grand Total</span><span class="amount">₹${fmt(q.grandTotal)}</span></div>
-    </div>
-    <div class="dr-section">
-      <div class="dr-section-title">Details</div>
-      <div class="dr-row"><span class="dr-label">Date</span><span class="dr-value">${date}</span></div>
-    </div>
-
-    <!-- ── EDIT SECTION ── -->
-    <div class="dr-section" style="background:rgba(59,130,246,.04);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:16px;">
-      <div class="dr-section-title" style="margin-bottom:14px">Edit Quote</div>
-
-      <div style="margin-bottom:12px">
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">Status</label>
-        <select id="dq-status" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;outline:none">
-          ${['draft','sent','accepted','rejected','invoiced'].map(s =>
-            `<option value="${s}" ${q.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`
-          ).join('')}
-        </select>
-      </div>
-
-      <div style="margin-bottom:14px">
-        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">Remark / Notes</label>
-        <textarea id="dq-remark" rows="3" placeholder="Add notes about this quote…" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;outline:none;resize:vertical">${q.remark||''}</textarea>
-      </div>
-
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button onclick="saveQuoteEdit()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .15s" onmouseover="this.style.background='var(--accent-hover)'" onmouseout="this.style.background='var(--accent)'">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
-          Save Changes
-        </button>
-        <button id="dq-zoho-btn" onclick="resendToZoho()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25);border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
-          ${q.zohoEstimateId ? 'Re-send to Zoho Books' : 'Send to Zoho Books'}
-        </button>
-        ${q.zohoEstimateId ? `<a href="https://books.zoho.in/app#/estimates/${q.zohoEstimateId}" target="_blank" style="font-size:12px;color:var(--accent);text-align:center;text-decoration:none">View in Zoho Books ↗</a>` : ''}
-        <button onclick="deleteQuote('${q.quoteNumber}')" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">
-          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
-          Delete Quote
-        </button>
-      </div>
-      <div id="dq-msg" style="font-size:12px;margin-top:8px;display:none"></div>
-    </div>
-  `;
-
-  document.getElementById('drawer-backdrop').classList.add('open');
-  document.getElementById('quote-drawer').classList.add('open');
-}
-
-async function saveQuoteEdit() {
-  if (!_drawerQuoteNum) return;
-  const status = document.getElementById('dq-status').value;
-  const remark = document.getElementById('dq-remark').value.trim();
-  const msg = document.getElementById('dq-msg');
-  msg.style.display = 'block'; msg.style.color = 'var(--muted)'; msg.textContent = 'Saving…';
-  try {
-    const r = await fetch(`${API}/api/quotes/${_drawerQuoteNum}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
-      body: JSON.stringify({ status, remark })
-    });
-    const res = await r.json();
-    if (res.success) {
-      msg.style.color = 'var(--green)'; msg.textContent = '✓ Saved';
-      // Update local data
-      const q = window._dashQuotes.find(x => x.quoteNumber === _drawerQuoteNum);
-      if (q) { q.status = status; q.remark = remark; }
-      // Refresh badge in table
-      const tbody = document.getElementById('quotes-tbody');
-      tbody.querySelectorAll('tr').forEach(tr => {
-        if (tr.querySelector('span')?.textContent === _drawerQuoteNum) {
-          const badgeCell = tr.cells[3];
-          if (badgeCell) badgeCell.innerHTML = statusBadge(status);
-        }
-      });
-    } else {
-      msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + (res.error || 'Error');
-    }
-  } catch(e) { msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message; }
-}
-
-async function resendToZoho() {
-  if (!_drawerQuoteNum) return;
-  const btn = document.getElementById('dq-zoho-btn');
-  const msg = document.getElementById('dq-msg');
-  btn.disabled = true; btn.textContent = '⏳ Sending to Zoho…';
-  msg.style.display = 'block'; msg.style.color = 'var(--muted)'; msg.textContent = 'Sending…';
-  try {
-    const r = await fetch(`${API}/api/zoho-books/create-estimate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
-      body: JSON.stringify({ quoteId: _drawerQuoteNum })
-    });
-    const res = await r.json();
-    if (res.success) {
-      msg.style.color = 'var(--green)'; msg.textContent = '✓ Sent! Est. #' + res.estimateNumber;
-      btn.textContent = '✓ Sent to Zoho Books';
-      const q = window._dashQuotes.find(x => x.quoteNumber === _drawerQuoteNum);
-      if (q) { q.status = 'sent'; q.zohoEstimateId = res.estimateId; }
-    } else {
-      msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + (res.error || 'Zoho error');
-      btn.disabled = false; btn.textContent = 'Send to Zoho Books';
-    }
-  } catch(e) {
-    msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message;
-    btn.disabled = false; btn.textContent = 'Send to Zoho Books';
+// ── Main Init ─────────────────────────────────────────────────────────────────
+async function init() {
+  if (!getSession()) { location.href = 'login.html'; return; }
+  const user = getUser();
+  if (user) {
+    document.getElementById('user-name').textContent = user.fullName || user.username || '—';
+    document.getElementById('user-role').textContent = user.role || '';
+    document.getElementById('avatar').textContent = (user.fullName||user.username||'?')[0].toUpperCase();
+    if (user.role === 'admin') document.getElementById('users-link').style.display = '';
   }
-}
 
-async function deleteQuote(qn) {
-  if (!confirm(`Delete quote ${qn}? This cannot be undone.`)) return;
-  const msg = document.getElementById('dq-msg');
-  msg.style.display = 'block'; msg.style.color = 'var(--muted)'; msg.textContent = 'Deleting…';
+  // Date display
+  document.getElementById('dash-date').textContent =
+    new Date().toLocaleDateString('en-IN', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+  const h = {'X-Session-ID': getSession()};
+
   try {
-    const r = await fetch(`${API}/api/quotes/${qn}`, {
-      method: 'DELETE', headers: { 'X-Session-ID': getSession() }
-    });
-    const res = await r.json();
-    if (res.success) {
-      window._dashQuotes = window._dashQuotes.filter(q => q.quoteNumber !== qn);
-      closeQuoteDrawer();
-      // Re-render quotes tbody
-      const tbody = document.getElementById('quotes-tbody');
-      const rows = Array.from(tbody.querySelectorAll('tr')).filter(tr => {
-        const span = tr.querySelector('span[style*="monospace"]');
-        return !span || span.textContent !== qn;
-      });
-      if (!window._dashQuotes.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty">No legacy quotes</td></tr>';
-      } else {
-        tbody.querySelectorAll('tr').forEach(tr => {
-          const span = tr.querySelector('span[style*="monospace"]');
-          if (span && span.textContent === qn) tr.remove();
-        });
-      }
-    } else {
-      msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + (res.error || 'Error');
-    }
-  } catch(e) { msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message; }
-}
+    // Parallel fetch all data
+    const [statsRes, pipelineRes, revenueRes, projectsRes, productsRes] = await Promise.all([
+      fetch(`${API}/api/dashboard/stats`,     {headers:h}),
+      fetch(`${API}/api/analytics/pipeline`,  {headers:h}),
+      fetch(`${API}/api/analytics/revenue`,   {headers:h}),
+      fetch(`${API}/api/analytics/projects`,  {headers:h}),
+      fetch(`${API}/api/analytics/products`,  {headers:h}),
+    ]);
 
-function closeQuoteDrawer() {
-  document.getElementById('drawer-backdrop').classList.remove('open');
-  document.getElementById('quote-drawer').classList.remove('open');
+    const stats    = await statsRes.json();
+    const pipeline = pipelineRes.ok   ? await pipelineRes.json()   : {};
+    const revenue  = revenueRes.ok    ? await revenueRes.json()    : {};
+    const projData = projectsRes.ok   ? await projectsRes.json()   : {};
+    const prodData = productsRes.ok   ? await productsRes.json()   : {};
+
+    if (stats.error) throw new Error(stats.error);
+
+    // Render KPIs
+    renderKPIs(stats.kpis || {
+      revenue: stats.revenue||0, pipelineValue: stats.pipelineValue||0,
+      activeProjects: stats.activeProjects||0, openLeads: stats.activeLeads||0,
+      pendingPayments: 0, openIssues: 0
+    });
+
+    // Render alerts
+    if (stats.alerts) renderAlerts(stats.alerts);
+
+    // Render activity feed
+    renderActivityFeed(stats.recentActivity || []);
+
+    // Render recent projects table
+    renderProjectsTable(stats.recentProjects || []);
+
+    // Init charts (all async, non-blocking)
+    if (revenue.labels)   initRevenueChart(revenue);
+    else initRevenueChart({ labels:['No data'], received:[0], pipeline:[0] });
+
+    if (projData.statusCounts) initStatusChart(projData.statusCounts);
+    else initStatusChart({ in_progress:1 });
+
+    if (pipeline.funnel)  initPipelineChart(pipeline.funnel);
+    else initPipelineChart([{stage:'No data',count:0,color:'#64748b'}]);
+
+    if (prodData.products) initProductsChart(prodData.products);
+    else initProductsChart([]);
+
+  } catch(e) {
+    document.getElementById('kpi-grid').innerHTML =
+      `<div style="grid-column:1/-1;padding:24px;text-align:center;color:var(--red);">Error loading dashboard: ${e.message}</div>`;
+  }
 }
 
 init();
