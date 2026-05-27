@@ -235,6 +235,66 @@
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;}
   .overlay.open{display:block;}
 
+  /* ── Materials Tab ────────────────────────────────── */
+  .mat-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px;}
+  .mat-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:center;}
+  .mat-stat-val{font-size:22px;font-weight:800;line-height:1;}
+  .mat-stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:3px;}
+  .mat-progress-wrap{margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;}
+  .mat-progress-row{display:flex;align-items:center;gap:12px;}
+  .mat-progress-bar{flex:1;height:8px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+  .mat-progress-fill{height:100%;border-radius:4px;transition:width .5s ease;background:linear-gradient(90deg,#3b82f6,#22c55e);}
+  .mat-progress-label{font-size:13px;font-weight:700;min-width:40px;text-align:right;}
+
+  .mat-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .mat-filter-bar{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+  .mat-filter-btn{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+  .mat-filter-btn:hover,.mat-filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  /* Materials table */
+  .mat-table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+  .mat-table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px;}
+  .mat-table th{padding:9px 12px;text-align:left;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);white-space:nowrap;}
+  .mat-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle;}
+  .mat-table tr:last-child td{border-bottom:none;}
+  .mat-table tr:hover td{background:rgba(255,255,255,.02);}
+  .mat-table tr.editing td{background:rgba(59,130,246,.04);}
+
+  /* Status badges */
+  .mat-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+  .mb-pending{background:rgba(148,163,184,.1);color:#94a3b8;}
+  .mb-ordered{background:rgba(59,130,246,.12);color:#60a5fa;}
+  .mb-partial{background:rgba(234,179,8,.12);color:#fbbf24;}
+  .mb-delivered{background:rgba(34,197,94,.12);color:#4ade80;}
+  .mb-partial_installed{background:rgba(249,115,22,.12);color:#fb923c;}
+  .mb-installed{background:rgba(16,185,129,.15);color:#34d399;}
+
+  /* Qty stepper */
+  .qty-stepper{display:inline-flex;align-items:center;gap:4px;}
+  .qty-btn{width:22px;height:22px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+  .qty-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .qty-val{min-width:32px;text-align:center;font-size:13px;font-weight:600;}
+  .qty-of{font-size:11px;color:var(--muted);margin-left:2px;}
+
+  /* Vendor inline edit */
+  .vendor-cell{display:flex;align-items:center;gap:6px;}
+  .vendor-input{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;color:var(--text);width:110px;outline:none;}
+  .vendor-input:focus{border-color:var(--accent);}
+
+  /* Shortage alert */
+  .mat-alert{display:flex;align-items:flex-start;gap:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#fca5a5;}
+  .mat-alert-icon{flex-shrink:0;margin-top:1px;}
+
+  /* Empty / loading */
+  .mat-empty{padding:52px;text-align:center;color:var(--muted);}
+  .mat-empty svg{opacity:.25;margin-bottom:12px;}
+
+  /* Add material modal */
+  .mat-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:16px;}
+  .mat-modal-overlay.open{display:flex;}
+  .mat-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:460px;}
+  .mat-modal-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+
   /* ── Site Log ─────────────────────────────────────── */
   .sl-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
   .sl-filter-bar{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
@@ -345,6 +405,49 @@
   </div>
 </aside>
 <div class="overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+
+<!-- Add Material Modal -->
+<div class="mat-modal-overlay" id="mat-modal-overlay" onclick="if(event.target===this)closeMaterialModal()">
+  <div class="mat-modal">
+    <div class="mat-modal-title">
+      <span>Add Material</span>
+      <button onclick="closeMaterialModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label class="form-label">Product Name *</label>
+        <input id="mat-name" class="form-control" placeholder="e.g. Legrand MCB 32A">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div>
+          <label class="form-label">Required Qty *</label>
+          <input id="mat-qty" class="form-control" type="number" min="1" value="1">
+        </div>
+        <div>
+          <label class="form-label">Unit</label>
+          <input id="mat-unit" class="form-control" placeholder="pcs" value="pcs">
+        </div>
+        <div>
+          <label class="form-label">Rate (₹)</label>
+          <input id="mat-rate" class="form-control" type="number" min="0" placeholder="0">
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Vendor</label>
+        <input id="mat-vendor" class="form-control" placeholder="Vendor name">
+      </div>
+      <div>
+        <label class="form-label">Notes</label>
+        <textarea id="mat-notes" class="form-control" rows="2" placeholder="Optional notes…"></textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeMaterialModal()">Cancel</button>
+      <button class="btn btn-primary" id="mat-add-btn" onclick="submitAddMaterial()">Add Material</button>
+    </div>
+    <div id="mat-modal-err" style="font-size:12px;color:var(--red);text-align:center;margin-top:8px"></div>
+  </div>
+</div>
 
 <!-- Site Log FAB -->
 <button class="sl-fab" id="sl-fab" onclick="openPostUpdateModal()">
@@ -583,6 +686,11 @@ function renderPage(){
         Site Log
         <span class="tab-count" id="sitelog-tab-count">0</span>
       </button>
+      <button class="tab-btn" onclick="showTab('materials',this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        Materials
+        <span class="tab-count" id="mat-tab-count">0</span>
+      </button>
     </div>
 
     <!-- Overview Tab -->
@@ -706,6 +814,11 @@ function renderPage(){
     <div class="tab-panel" id="tab-sitelog">
       <div id="sitelog-ui"></div>
     </div>
+
+    <!-- Materials Tab -->
+    <div class="tab-panel" id="tab-materials">
+      <div id="materials-ui"></div>
+    </div>
   `;
 
   // Populate assigned select
@@ -741,7 +854,8 @@ function showTab(name, btn){
   if(name==='proposal' && !window._propLoaded)     loadProposalTab();
   if(name==='payments' && !window._pymLoaded)      loadPaymentsTab();
   if(name==='tasks'    && !window._tskLoaded)      loadTasksTab();
-  if(name==='sitelog'  && !window._slLoaded)       loadSiteLogTab();
+  if(name==='sitelog'   && !window._slLoaded)      loadSiteLogTab();
+  if(name==='materials' && !window._matLoaded)     loadMaterialsTab();
   // Show/hide Post Update FAB
   const fab=document.getElementById('sl-fab');
   if(fab) fab.classList.toggle('visible', name==='sitelog');
@@ -2623,6 +2737,371 @@ async function deleteTaskItem(id){
     window._tskLoaded=false;
     loadTasksTab();
   } catch(e){ toast(e.message||'Failed','error'); }
+}
+
+// ── Materials / Product Tracking ─────────────────────────────────────────────
+
+window._matLoaded = false;
+window._materials = [];
+window._matFilter = 'all';
+window._matSummary = null;
+
+const MAT_STATUS = {
+  pending:          { label:'Pending',           cls:'mb-pending',          dot:'#94a3b8' },
+  ordered:          { label:'Ordered',           cls:'mb-ordered',          dot:'#3b82f6' },
+  partial:          { label:'Partial Delivery',  cls:'mb-partial',          dot:'#eab308' },
+  delivered:        { label:'Delivered',         cls:'mb-delivered',        dot:'#22c55e' },
+  partial_installed:{ label:'Partial Install',   cls:'mb-partial_installed',dot:'#f97316' },
+  installed:        { label:'Installed',         cls:'mb-installed',        dot:'#10b981' },
+};
+
+function matStatusBadge(s){
+  const m = MAT_STATUS[s]||MAT_STATUS.pending;
+  return `<span class="mat-badge ${m.cls}">${m.label}</span>`;
+}
+
+async function loadMaterialsTab(){
+  window._matLoaded = true;
+  document.getElementById('materials-ui').innerHTML =
+    `<div style="padding:32px;text-align:center;color:var(--muted)"><span class="spinner"></span></div>`;
+  await refreshMaterials();
+}
+
+async function refreshMaterials(){
+  try {
+    const [matRes, sumRes] = await Promise.all([
+      fetch(`${API}/api/projects/${projectId}/materials`, { headers: ah() }).then(r=>r.json()),
+      fetch(`${API}/api/projects/${projectId}/materials/summary`, { headers: ah() }).then(r=>r.json()),
+    ]);
+    window._materials = matRes.materials || [];
+    window._matSummary = sumRes;
+    const tc = document.getElementById('mat-tab-count');
+    if(tc) tc.textContent = window._materials.length || 0;
+    renderMaterialsUI();
+  } catch(e) {
+    document.getElementById('materials-ui').innerHTML =
+      `<div class="mat-empty"><div style="color:var(--red)">${e.message}</div></div>`;
+  }
+}
+
+function renderMaterialsUI(){
+  const s = window._matSummary || {};
+  const total = s.total || 0;
+  const c = s.counts || {};
+  const pct = s.installedPct || 0;
+
+  // Shortage detection
+  const shortages = window._materials.filter(m =>
+    m.orderedQty > 0 && m.deliveredQty < m.orderedQty &&
+    m.status !== 'installed' && m.status !== 'partial_installed'
+  );
+
+  const filtered = window._matFilter === 'all'
+    ? window._materials
+    : window._materials.filter(m => m.status === window._matFilter);
+
+  document.getElementById('materials-ui').innerHTML = `
+    <!-- Summary bar -->
+    <div class="mat-summary">
+      <div class="mat-stat">
+        <div class="mat-stat-val">${total}</div>
+        <div class="mat-stat-label">Total Items</div>
+      </div>
+      <div class="mat-stat">
+        <div class="mat-stat-val" style="color:#94a3b8">${c.pending||0}</div>
+        <div class="mat-stat-label">Pending</div>
+      </div>
+      <div class="mat-stat">
+        <div class="mat-stat-val" style="color:#60a5fa">${c.ordered||0}</div>
+        <div class="mat-stat-label">Ordered</div>
+      </div>
+      <div class="mat-stat">
+        <div class="mat-stat-val" style="color:#4ade80">${(c.delivered||0)+(c.partial||0)}</div>
+        <div class="mat-stat-label">Delivered</div>
+      </div>
+      <div class="mat-stat">
+        <div class="mat-stat-val" style="color:#34d399">${c.installed||0}</div>
+        <div class="mat-stat-label">Installed</div>
+      </div>
+      ${s.totalValue ? `<div class="mat-stat">
+        <div class="mat-stat-val" style="font-size:14px;color:var(--accent)">${fmt(s.totalValue)}</div>
+        <div class="mat-stat-label">Total Value</div>
+      </div>` : ''}
+    </div>
+
+    <!-- Progress bar -->
+    ${total > 0 ? `<div class="mat-progress-wrap">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:600">Installation Progress</span>
+        <span style="font-size:13px;font-weight:700;color:var(--accent)">${pct}%</span>
+      </div>
+      <div class="mat-progress-bar"><div class="mat-progress-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap">
+        ${Object.entries(MAT_STATUS).map(([k,v])=>(c[k]||0)>0?`<span style="font-size:11px;color:var(--muted)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${v.dot};margin-right:4px"></span>${v.label}: ${c[k]}</span>`:'').filter(Boolean).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- Shortage alert -->
+    ${shortages.length ? `<div class="mat-alert">
+      <div class="mat-alert-icon"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <div><strong>${shortages.length} item${shortages.length>1?'s':''} short</strong> — delivered quantity below ordered.
+        Follow up with vendor: ${shortages.slice(0,3).map(m=>esc(m.productName)).join(', ')}${shortages.length>3?` +${shortages.length-3} more`:''}
+      </div>
+    </div>` : ''}
+
+    <!-- Toolbar -->
+    <div class="mat-toolbar">
+      <div class="mat-filter-bar">
+        ${['all','pending','ordered','partial','delivered','partial_installed','installed'].map(f=>`
+          <button class="mat-filter-btn${f===window._matFilter?' active':''}" onclick="matSetFilter('${f}')">
+            ${f==='all'?'All':(MAT_STATUS[f]?.label||f)} ${f!=='all'&&(c[f]||0)?`<span style="opacity:.7">(${c[f]})</span>`:''}
+          </button>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" onclick="openImportBOQModal()" title="Import from approved BOQ">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Import BOQ
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openAddMaterialModal()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Item
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    ${filtered.length ? `
+    <div class="mat-table-wrap">
+      <table class="mat-table">
+        <thead>
+          <tr>
+            <th style="min-width:160px">Product</th>
+            <th style="text-align:center">Required</th>
+            <th style="text-align:center">Ordered</th>
+            <th style="text-align:center">Delivered</th>
+            <th style="text-align:center">Installed</th>
+            <th>Status</th>
+            <th>Vendor</th>
+            <th style="text-align:right">Value</th>
+            <th style="width:60px"></th>
+          </tr>
+        </thead>
+        <tbody id="mat-tbody">
+          ${filtered.map(m => renderMaterialRow(m)).join('')}
+        </tbody>
+      </table>
+    </div>` : `<div class="mat-empty">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      <div style="margin-top:8px">${total===0?'No materials tracked yet':'No items in this filter'}</div>
+      ${total===0?`<div style="font-size:12px;margin-top:4px">Import from an approved BOQ or add manually →</div>`:''}
+    </div>`}
+  `;
+}
+
+function renderMaterialRow(m, editing=false){
+  const val = (m.rate||0) * (m.quantity||0);
+  const isShort = m.orderedQty > 0 && m.deliveredQty < m.orderedQty && m.status!=='installed';
+  return `<tr id="mat-row-${m.id}" class="${editing?'editing':''}">
+    <td>
+      <div style="font-weight:600;font-size:13px">${esc(m.productName)}</div>
+      ${m.notes?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${esc(m.notes)}</div>`:''}
+    </td>
+    <td style="text-align:center;font-weight:600">${m.quantity} <span style="font-size:10px;color:var(--muted)">${esc(m.unit||'pcs')}</span></td>
+    <td style="text-align:center">
+      <div class="qty-stepper">
+        <button class="qty-btn" onclick="matStep(${m.id},'orderedQty',-1)">−</button>
+        <span class="qty-val" id="mat-ord-${m.id}">${m.orderedQty||0}</span>
+        <button class="qty-btn" onclick="matStep(${m.id},'orderedQty',+1)">+</button>
+      </div>
+    </td>
+    <td style="text-align:center">
+      <div class="qty-stepper">
+        <button class="qty-btn" onclick="matStep(${m.id},'deliveredQty',-1)">−</button>
+        <span class="qty-val" id="mat-del-${m.id}" style="${isShort?'color:var(--red)':''}">${m.deliveredQty||0}</span>
+        <button class="qty-btn" onclick="matStep(${m.id},'deliveredQty',+1)">+</button>
+      </div>
+    </td>
+    <td style="text-align:center">
+      <div class="qty-stepper">
+        <button class="qty-btn" onclick="matStep(${m.id},'installedQty',-1)">−</button>
+        <span class="qty-val" id="mat-ins-${m.id}">${m.installedQty||0}</span>
+        <button class="qty-btn" onclick="matStep(${m.id},'installedQty',+1)">+</button>
+      </div>
+    </td>
+    <td><span id="mat-badge-${m.id}">${matStatusBadge(m.status)}</span></td>
+    <td>
+      <input class="vendor-input" id="mat-vendor-${m.id}" value="${esc(m.vendor||'')}" placeholder="Vendor…"
+        onblur="matSaveVendor(${m.id})" onkeydown="if(event.key==='Enter')this.blur()">
+    </td>
+    <td style="text-align:right;font-size:12px;color:var(--muted)">${val?fmt(val):'—'}</td>
+    <td style="text-align:right">
+      <button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:11px" onclick="deleteMat(${m.id})">✕</button>
+    </td>
+  </tr>`;
+}
+
+// Track in-flight qty updates to debounce
+const _matQtyPending = {};
+
+async function matStep(id, field, delta){
+  const m = window._materials.find(x=>x.id===id);
+  if(!m) return;
+  const newVal = Math.max(0, (m[field]||0) + delta);
+  m[field] = newVal;
+  // Update UI immediately
+  const elMap = { orderedQty:`mat-ord-${id}`, deliveredQty:`mat-del-${id}`, installedQty:`mat-ins-${id}` };
+  const el = document.getElementById(elMap[field]);
+  if(el) el.textContent = newVal;
+  // Recalc status locally
+  const newStatus = calcLocalStatus(m);
+  m.status = newStatus;
+  const badgeEl = document.getElementById(`mat-badge-${id}`);
+  if(badgeEl) badgeEl.innerHTML = matStatusBadge(newStatus);
+  // Debounce API call
+  clearTimeout(_matQtyPending[id]);
+  _matQtyPending[id] = setTimeout(async ()=>{
+    try {
+      const r = await fetch(`${API}/api/materials/${id}`,{
+        method:'PUT', headers:jh(),
+        body:JSON.stringify({ [field]: newVal })
+      });
+      const d = await r.json();
+      if(!r.ok) throw new Error(d.error);
+      if(d.status) { m.status = d.status; if(badgeEl) badgeEl.innerHTML = matStatusBadge(d.status); }
+      // Update summary quietly
+      refreshSummaryOnly();
+    } catch(e){ toast(e.message||'Update failed','error'); }
+  }, 600);
+}
+
+function calcLocalStatus(m){
+  const q = m.quantity || 1;
+  if((m.installedQty||0) >= q) return 'installed';
+  if((m.installedQty||0) > 0)  return 'partial_installed';
+  if((m.deliveredQty||0) >= q) return 'delivered';
+  if((m.deliveredQty||0) > 0)  return 'partial';
+  if((m.orderedQty||0)   > 0)  return 'ordered';
+  return 'pending';
+}
+
+async function matSaveVendor(id){
+  const input = document.getElementById(`mat-vendor-${id}`);
+  if(!input) return;
+  const vendor = input.value.trim();
+  const m = window._materials.find(x=>x.id===id);
+  if(m && m.vendor === vendor) return; // no change
+  if(m) m.vendor = vendor;
+  try {
+    await fetch(`${API}/api/materials/${id}`,{method:'PUT',headers:jh(),body:JSON.stringify({vendor})});
+  } catch(e){ console.warn('Vendor save failed',e); }
+}
+
+async function refreshSummaryOnly(){
+  try {
+    const s = await fetch(`${API}/api/projects/${projectId}/materials/summary`,{headers:ah()}).then(r=>r.json());
+    window._matSummary = s;
+    // Update count pill
+    const tc = document.getElementById('mat-tab-count');
+    if(tc) tc.textContent = s.total || 0;
+  } catch{}
+}
+
+function matSetFilter(f){
+  window._matFilter = f;
+  renderMaterialsUI();
+}
+
+async function deleteMat(id){
+  if(!confirm('Remove this material?')) return;
+  try {
+    await fetch(`${API}/api/materials/${id}`,{method:'DELETE',headers:ah()});
+    window._materials = window._materials.filter(m=>m.id!==id);
+    const tc = document.getElementById('mat-tab-count');
+    if(tc) tc.textContent = window._materials.length||0;
+    renderMaterialsUI();
+    toast('Material removed');
+  } catch(e){ toast(e.message||'Failed','error'); }
+}
+
+// ── Import from BOQ ──────────────────────────────────
+
+async function openImportBOQModal(){
+  // Find approved BOQs for this project
+  let boqs = window._boqs;
+  if(!boqs){
+    try {
+      const r = await fetch(`${API}/api/projects/${projectId}/boqs`,{headers:ah()});
+      const d = await r.json();
+      boqs = window._boqs = d.boqs||[];
+    } catch { boqs = []; }
+  }
+  const approved = boqs.filter(b=>b.status==='approved');
+  if(!approved.length){
+    toast('No approved BOQ found. Approve a BOQ first.','error'); return;
+  }
+  if(!confirm(`Import ${approved[0].items_json?JSON.parse(approved[0].items_json||'[]').length:0} items from BOQ v${approved[0].version}?\n\nExisting BOQ-imported items will be replaced.`)) return;
+  await importFromBOQ(approved[0].id);
+}
+
+async function importFromBOQ(boqId){
+  try {
+    const r = await fetch(`${API}/api/projects/${projectId}/materials/import`,{
+      method:'POST', headers:jh(), body:JSON.stringify({boqId})
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Import failed');
+    toast(`✓ Imported ${d.imported} items from BOQ v${d.boqVersion}`);
+    window._matLoaded = false;
+    await refreshMaterials();
+  } catch(e){ toast(e.message||'Import failed','error'); }
+}
+
+// ── Add Manual Material Modal ──────────────────────────
+
+function openAddMaterialModal(){
+  document.getElementById('mat-name').value='';
+  document.getElementById('mat-qty').value='1';
+  document.getElementById('mat-unit').value='pcs';
+  document.getElementById('mat-rate').value='';
+  document.getElementById('mat-vendor').value='';
+  document.getElementById('mat-notes').value='';
+  document.getElementById('mat-modal-err').textContent='';
+  document.getElementById('mat-add-btn').disabled=false;
+  document.getElementById('mat-modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('mat-name').focus(), 80);
+}
+
+function closeMaterialModal(){
+  document.getElementById('mat-modal-overlay').classList.remove('open');
+}
+
+async function submitAddMaterial(){
+  const name = document.getElementById('mat-name').value.trim();
+  const err  = document.getElementById('mat-modal-err');
+  if(!name){ err.textContent='Product name is required'; return; }
+  const btn = document.getElementById('mat-add-btn');
+  btn.disabled=true; btn.textContent='Adding…';
+  try {
+    const r = await fetch(`${API}/api/projects/${projectId}/materials`,{
+      method:'POST', headers:jh(),
+      body:JSON.stringify({
+        productName: name,
+        quantity:    Math.max(1,Number(document.getElementById('mat-qty').value)||1),
+        unit:        document.getElementById('mat-unit').value.trim()||'pcs',
+        rate:        Number(document.getElementById('mat-rate').value)||0,
+        vendor:      document.getElementById('mat-vendor').value.trim(),
+        notes:       document.getElementById('mat-notes').value.trim(),
+      })
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Failed');
+    closeMaterialModal();
+    toast('Material added');
+    await refreshMaterials();
+  } catch(e){
+    err.textContent = e.message;
+    btn.disabled=false; btn.textContent='Add Material';
+  }
 }
 
 // ── Site Log ─────────────────────────────────────────────────────────────
