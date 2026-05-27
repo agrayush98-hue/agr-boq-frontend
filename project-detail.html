@@ -235,6 +235,106 @@
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;}
   .overlay.open{display:block;}
 
+  /* ── Issues Tab ───────────────────────────────────── */
+  /* Critical banner */
+  .critical-banner{display:none;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:9px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:opacity .15s;}
+  .critical-banner.visible{display:flex;}
+  .critical-banner:hover{opacity:.85;}
+  .critical-banner-text{font-size:13px;font-weight:600;color:#fca5a5;flex:1;}
+  .critical-banner-arrow{color:#f87171;font-size:16px;}
+
+  /* Issue summary */
+  .iss-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:18px;}
+  .iss-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:11px 14px;text-align:center;}
+  .iss-stat-val{font-size:20px;font-weight:800;line-height:1;}
+  .iss-stat-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:3px;}
+  .iss-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:center;}
+  .iss-summary-val{font-size:22px;font-weight:800;line-height:1.1;}
+  .iss-summary-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px;}
+
+  /* Toolbar */
+  .iss-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+  .iss-filter-group{display:flex;gap:6px;flex-wrap:wrap;}
+  .iss-filter-btn{padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .iss-filter-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .iss-filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .iss-filter-sep{width:1px;background:var(--border);height:20px;align-self:center;flex-shrink:0;}
+
+  /* Issue cards grid */
+  .iss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;}
+  .iss-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px;transition:border-color .15s,transform .15s;cursor:pointer;}
+  .iss-card:hover{border-color:rgba(59,130,246,.35);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.3);}
+  .iss-card.priority-critical{border-left:3px solid #ef4444;}
+  .iss-card.priority-high{border-left:3px solid #f97316;}
+  .iss-card.priority-medium{border-left:3px solid #eab308;}
+  .iss-card.priority-low{border-left:3px solid #64748b;}
+
+  /* Priority badges */
+  .iss-pri{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+  .pri-critical{background:rgba(239,68,68,.15);color:#f87171;}
+  .pri-high{background:rgba(249,115,22,.15);color:#fb923c;}
+  .pri-medium{background:rgba(234,179,8,.15);color:#fbbf24;}
+  .pri-low{background:rgba(100,116,139,.15);color:#94a3b8;}
+
+  /* Type badges */
+  .iss-type{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+
+  /* Status badges */
+  .iss-status{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+  .ist-open{background:rgba(59,130,246,.12);color:#60a5fa;}
+  .ist-in_progress{background:rgba(249,115,22,.12);color:#fb923c;}
+  .ist-resolved{background:rgba(34,197,94,.12);color:#4ade80;}
+  .ist-closed{background:rgba(148,163,184,.1);color:#94a3b8;}
+  .ist-wont_fix{background:rgba(100,116,139,.1);color:#64748b;}
+
+  .iss-card-title{font-size:14px;font-weight:700;line-height:1.35;color:var(--text);}
+  .iss-card-desc{font-size:12px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .iss-card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--muted);}
+  .iss-meta-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;background:var(--surface2);border-radius:10px;border:1px solid var(--border);}
+  .iss-card-actions{display:flex;gap:6px;margin-top:2px;}
+
+  /* Issue FAB */
+  .iss-fab{position:fixed;bottom:80px;right:24px;z-index:79;background:#ef4444;color:#fff;border:none;border-radius:50px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(239,68,68,.4);display:none;align-items:center;gap:8px;transition:all .15s;}
+  .iss-fab:hover{background:#dc2626;transform:translateY(-1px);}
+  .iss-fab.visible{display:flex;}
+
+  /* Issue detail drawer */
+  .iss-drawer-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;justify-content:flex-end;}
+  .iss-drawer-bg.open{display:flex;}
+  .iss-drawer{background:var(--surface);border-left:1px solid var(--border);width:100%;max-width:520px;height:100vh;overflow-y:auto;display:flex;flex-direction:column;animation:slideInRight .2s ease;}
+  @keyframes slideInRight{from{transform:translateX(60px);opacity:.5}to{transform:translateX(0);opacity:1}}
+  .iss-drawer-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;position:sticky;top:0;background:var(--surface);z-index:10;}
+  .iss-drawer-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:2px 8px;border-radius:6px;margin-left:auto;}
+  .iss-drawer-close:hover{background:var(--surface2);color:var(--text);}
+  .iss-drawer-body{padding:20px;flex:1;}
+  .iss-section{margin-bottom:22px;}
+  .iss-section-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+  .iss-field-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px;}
+  .iss-field-row:last-child{border-bottom:none;}
+  .iss-field-label{color:var(--muted);}
+  .iss-field-val{font-weight:500;text-align:right;}
+  .iss-photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px;margin-top:8px;}
+  .iss-photo{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--border);}
+  .iss-timeline{display:flex;flex-direction:column;gap:8px;}
+  .iss-timeline-item{display:flex;gap:10px;font-size:12px;}
+  .iss-timeline-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:4px;}
+  .iss-timeline-text{color:var(--muted);line-height:1.5;}
+  .iss-timeline-text strong{color:var(--text);}
+
+  /* Report + Resolve modals */
+  .iss-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:16px;}
+  .iss-modal-overlay.open{display:flex;}
+  .iss-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;}
+  .iss-modal-title{font-size:16px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+  .iss-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .iss-form-full{grid-column:1/-1;}
+  .iss-photo-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-top:6px;}
+  .iss-photo-item{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:1;}
+  .iss-photo-item img{width:100%;height:100%;object-fit:cover;}
+  .iss-photo-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:50%;width:16px;height:16px;cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;}
+  .iss-empty{padding:56px;text-align:center;color:var(--muted);}
+  .iss-empty svg{opacity:.25;margin-bottom:12px;}
+
   /* ── Materials Tab ────────────────────────────────── */
   .mat-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:20px;}
   .mat-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;text-align:center;}
@@ -405,6 +505,143 @@
   </div>
 </aside>
 <div class="overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+
+<!-- Issue Report Modal -->
+<div class="iss-modal-overlay" id="iss-report-overlay" onclick="if(event.target===this)closeIssueModal()">
+  <div class="iss-modal">
+    <div class="iss-modal-title">
+      <span id="iss-modal-header">Report Issue</span>
+      <button onclick="closeIssueModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px">×</button>
+    </div>
+    <div class="iss-form-grid">
+      <!-- Type -->
+      <div>
+        <label class="form-label">Issue Type</label>
+        <select id="iss-type" class="form-control">
+          <option value="general">⚠️ General</option>
+          <option value="defect">🔧 Defect</option>
+          <option value="client_change">👤 Client Change</option>
+          <option value="damage">💥 Damage</option>
+          <option value="shortage">📦 Shortage</option>
+          <option value="access">🚪 Access Problem</option>
+          <option value="safety">🦺 Safety Concern</option>
+        </select>
+      </div>
+      <!-- Priority -->
+      <div>
+        <label class="form-label">Priority</label>
+        <select id="iss-priority" class="form-control">
+          <option value="low">🔵 Low — Can wait</option>
+          <option value="medium" selected>🟡 Medium — 2 days</option>
+          <option value="high">🟠 High — 24 hours</option>
+          <option value="critical">🔴 Critical — Stop work</option>
+        </select>
+      </div>
+      <!-- Title -->
+      <div class="iss-form-full">
+        <label class="form-label">Title *</label>
+        <input id="iss-title" class="form-control" placeholder="Brief description of the issue…">
+      </div>
+      <!-- Description -->
+      <div class="iss-form-full">
+        <label class="form-label">Description</label>
+        <textarea id="iss-desc" class="form-control" rows="3" style="resize:vertical;min-height:68px" placeholder="Detailed notes, what happened, impact…"></textarea>
+      </div>
+      <!-- Area + Assigned -->
+      <div>
+        <label class="form-label">Room / Area</label>
+        <input id="iss-area" class="form-control" placeholder="e.g. Master Bedroom">
+      </div>
+      <div>
+        <label class="form-label">Assign To</label>
+        <select id="iss-assigned" class="form-control">
+          <option value="">Unassigned</option>
+        </select>
+      </div>
+      <!-- Due date + Related task -->
+      <div>
+        <label class="form-label">Due Date</label>
+        <input id="iss-due" type="date" class="form-control">
+      </div>
+      <div>
+        <label class="form-label">Link Task</label>
+        <select id="iss-task-link" class="form-control">
+          <option value="">None</option>
+        </select>
+      </div>
+      <!-- Related material -->
+      <div class="iss-form-full">
+        <label class="form-label">Link Material</label>
+        <select id="iss-mat-link" class="form-control">
+          <option value="">None</option>
+        </select>
+      </div>
+      <!-- Photos -->
+      <div class="iss-form-full">
+        <label class="form-label">Photos</label>
+        <label class="file-upload-label" style="width:100%;justify-content:center">
+          <input type="file" accept="image/*" multiple style="display:none" id="iss-photo-input" onchange="issPreviewPhotos(this)">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Add Photos
+        </label>
+        <div class="iss-photo-preview" id="iss-photo-preview"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeIssueModal()">Cancel</button>
+      <button class="btn btn-primary" id="iss-submit-btn" onclick="submitIssue()" style="background:#ef4444">Report Issue</button>
+    </div>
+    <div id="iss-modal-err" style="font-size:12px;color:var(--red);text-align:center;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- Resolve Modal -->
+<div class="iss-modal-overlay" id="iss-resolve-overlay" onclick="if(event.target===this)closeResolveModal()">
+  <div class="iss-modal" style="max-width:440px">
+    <div class="iss-modal-title">
+      <span>Resolve Issue</span>
+      <button onclick="closeResolveModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label class="form-label">Resolution *</label>
+        <textarea id="iss-resolution" class="form-control" rows="4" style="resize:vertical;min-height:80px" placeholder="Describe how the issue was resolved…"></textarea>
+      </div>
+      <div>
+        <label class="form-label">Mark as</label>
+        <select id="iss-resolve-status" class="form-control">
+          <option value="resolved">✅ Resolved — Fixed</option>
+          <option value="closed">🔒 Closed — Acknowledged</option>
+          <option value="wont_fix">⛔ Won't Fix — Not applicable</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeResolveModal()">Cancel</button>
+      <button class="btn btn-primary" id="iss-resolve-btn" onclick="submitResolve()">Save Resolution</button>
+    </div>
+    <div id="iss-resolve-err" style="font-size:12px;color:var(--red);text-align:center;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- Issue Detail Drawer -->
+<div class="iss-drawer-bg" id="iss-drawer-bg" onclick="if(event.target===this)closeIssueDrawer()">
+  <div class="iss-drawer" id="iss-drawer">
+    <div class="iss-drawer-hd">
+      <div id="iss-drawer-badges" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <button class="iss-drawer-close" onclick="closeIssueDrawer()">×</button>
+    </div>
+    <div class="iss-drawer-body" id="iss-drawer-body">
+      <div style="padding:32px;text-align:center;color:var(--muted)"><span class="spinner"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Issue FAB -->
+<button class="iss-fab" id="iss-fab" onclick="openIssueModal()">
+  <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Report Issue
+</button>
 
 <!-- Add Material Modal -->
 <div class="mat-modal-overlay" id="mat-modal-overlay" onclick="if(event.target===this)closeMaterialModal()">
@@ -691,6 +928,18 @@ function renderPage(){
         Materials
         <span class="tab-count" id="mat-tab-count">0</span>
       </button>
+      <button class="tab-btn" onclick="showTab('issues',this)" id="issues-tab-btn">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Issues
+        <span class="tab-count" id="iss-tab-count">0</span>
+      </button>
+    </div>
+
+    <!-- Critical issues banner (shown on all tabs when critical issues open) -->
+    <div class="critical-banner" id="critical-banner" onclick="showTab('issues',document.getElementById('issues-tab-btn'))">
+      <svg width="16" height="16" fill="none" stroke="#f87171" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span class="critical-banner-text" id="critical-banner-text">Critical issues open</span>
+      <span class="critical-banner-arrow">→</span>
     </div>
 
     <!-- Overview Tab -->
@@ -819,6 +1068,11 @@ function renderPage(){
     <div class="tab-panel" id="tab-materials">
       <div id="materials-ui"></div>
     </div>
+
+    <!-- Issues Tab -->
+    <div class="tab-panel" id="tab-issues">
+      <div id="issues-ui"></div>
+    </div>
   `;
 
   // Populate assigned select
@@ -856,9 +1110,13 @@ function showTab(name, btn){
   if(name==='tasks'    && !window._tskLoaded)      loadTasksTab();
   if(name==='sitelog'   && !window._slLoaded)      loadSiteLogTab();
   if(name==='materials' && !window._matLoaded)     loadMaterialsTab();
+  if(name==='issues'    && !window._issLoaded)     loadIssuesTab();
   // Show/hide Post Update FAB
   const fab=document.getElementById('sl-fab');
   if(fab) fab.classList.toggle('visible', name==='sitelog');
+  // Show/hide Issues FAB
+  const issFab=document.getElementById('iss-fab');
+  if(issFab) issFab.classList.toggle('visible', name==='issues');
 }
 
 async function quickUpdateStatus(){
@@ -3469,6 +3727,451 @@ function copyShareLink(){
     document.getElementById('sl-share-copied').style.display='block';
     setTimeout(()=>{ document.getElementById('sl-share-copied').style.display='none'; }, 3000);
   }).catch(()=>{ document.execCommand('copy'); });
+}
+
+// ── Issue Tracker ─────────────────────────────────────────────────────────────
+
+const ISS_TYPES = {
+  general:       { label: 'General',        color: '#64748b' },
+  defect:        { label: 'Defect',         color: '#ef4444' },
+  client_change: { label: 'Client Change',  color: '#06b6d4' },
+  damage:        { label: 'Damage',         color: '#dc2626' },
+  shortage:      { label: 'Shortage',       color: '#8b5cf6' },
+  access:        { label: 'Access Problem', color: '#f97316' },
+  safety:        { label: 'Safety',         color: '#dc2626' }
+};
+const ISS_PRIORITIES = {
+  critical: { label: 'Critical', color: '#dc2626' },
+  high:     { label: 'High',     color: '#f97316' },
+  medium:   { label: 'Medium',   color: '#eab308' },
+  low:      { label: 'Low',      color: '#22c55e' }
+};
+const ISS_STATUSES = {
+  open:        { label: 'Open',        color: '#ef4444' },
+  in_progress: { label: 'In Progress', color: '#f97316' },
+  resolved:    { label: 'Resolved',    color: '#22c55e' },
+  closed:      { label: 'Closed',      color: '#64748b' },
+  wont_fix:    { label: "Won't Fix",   color: '#94a3b8' }
+};
+
+window._issLoaded = false;
+window._issues = [];
+window._issFilter = 'all';
+window._issPriorityFilter = 'all';
+window._issTypeFilter = 'all';
+window._issResolveId = null;
+window._issPendingPhotos = [];
+window._issEditId = null;
+
+async function loadIssuesTab(){
+  window._issLoaded = true;
+  const el = document.getElementById('issues-ui');
+  if(el) el.innerHTML = '<p style="color:var(--muted);padding:24px;text-align:center;">Loading issues…</p>';
+  try{
+    const r = await fetch(`${API}/api/projects/${projectId}/issues`, {headers: ah()});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Failed');
+    window._issues = d.issues || [];
+    updateCriticalBanner(d.critical_open || 0);
+    // update tab count
+    const cnt = document.getElementById('iss-tab-count');
+    if(cnt) cnt.textContent = window._issues.filter(i=>i.status==='open'||i.status==='in_progress').length;
+    renderIssuesUI();
+  } catch(e){
+    const el2 = document.getElementById('issues-ui');
+    if(el2) el2.innerHTML = `<p style="color:var(--red);padding:24px;text-align:center;">Error: ${e.message}</p>`;
+  }
+}
+
+function renderIssuesUI(){
+  const el = document.getElementById('issues-ui');
+  if(!el) return;
+
+  const issues = window._issues;
+  const open        = issues.filter(i=>i.status==='open').length;
+  const in_progress = issues.filter(i=>i.status==='in_progress').length;
+  const resolved    = issues.filter(i=>i.status==='resolved').length;
+  const critical    = issues.filter(i=>i.priority==='critical'&&(i.status==='open'||i.status==='in_progress')).length;
+
+  // filter
+  let filtered = [...issues];
+  if(window._issFilter !== 'all')         filtered = filtered.filter(i=>i.status === window._issFilter);
+  if(window._issPriorityFilter !== 'all') filtered = filtered.filter(i=>i.priority === window._issPriorityFilter);
+  if(window._issTypeFilter !== 'all')     filtered = filtered.filter(i=>i.type === window._issTypeFilter);
+
+  const priOpts = ['all','critical','high','medium','low'].map(v=>
+    `<option value="${v}" ${window._issPriorityFilter===v?'selected':''}>${v==='all'?'All Priorities':ISS_PRIORITIES[v]?.label||v}</option>`
+  ).join('');
+  const typeOpts = ['all',...Object.keys(ISS_TYPES)].map(v=>
+    `<option value="${v}" ${window._issTypeFilter===v?'selected':''}>${v==='all'?'All Types':ISS_TYPES[v]?.label||v}</option>`
+  ).join('');
+  const statusOpts = ['all','open','in_progress','resolved','closed','wont_fix'].map(v=>
+    `<option value="${v}" ${window._issFilter===v?'selected':''}>${v==='all'?'All Status':ISS_STATUSES[v]?.label||v}</option>`
+  ).join('');
+
+  el.innerHTML = `
+  <div class="iss-summary">
+    <div class="iss-summary-card"><div class="iss-summary-val" style="color:#ef4444">${open}</div><div class="iss-summary-lbl">Open</div></div>
+    <div class="iss-summary-card"><div class="iss-summary-val" style="color:#f97316">${in_progress}</div><div class="iss-summary-lbl">In Progress</div></div>
+    <div class="iss-summary-card"><div class="iss-summary-val" style="color:#22c55e">${resolved}</div><div class="iss-summary-lbl">Resolved</div></div>
+    <div class="iss-summary-card"><div class="iss-summary-val" style="color:#dc2626">${critical}</div><div class="iss-summary-lbl">Critical Open</div></div>
+    <div class="iss-summary-card"><div class="iss-summary-val">${issues.length}</div><div class="iss-summary-lbl">Total</div></div>
+  </div>
+  ${critical > 0 ? `<div style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:13px;font-weight:600;color:#fca5a5;">⚠ ${critical} critical issue${critical>1?'s':''} require${critical===1?'s':''} immediate attention</div>` : ''}
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;">
+    <select onchange="issSetFilter('status',this.value)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:13px;">${statusOpts}</select>
+    <select onchange="issSetFilter('priority',this.value)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:13px;">${priOpts}</select>
+    <select onchange="issSetFilter('type',this.value)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:13px;">${typeOpts}</select>
+    <span style="color:var(--muted);font-size:13px;margin-left:auto;">${filtered.length} issue${filtered.length!==1?'s':''}</span>
+  </div>
+  ${filtered.length === 0 ? `<div style="text-align:center;color:var(--muted);padding:48px 0;font-size:15px;">No issues found. Tap <strong>+ Report Issue</strong> to log one.</div>` :
+    `<div class="iss-grid">${filtered.map(renderIssueCard).join('')}</div>`
+  }`;
+}
+
+function renderIssueCard(iss){
+  const pri   = ISS_PRIORITIES[iss.priority] || {label:iss.priority, color:'#64748b'};
+  const typ   = ISS_TYPES[iss.type]          || {label:iss.type,     color:'#64748b'};
+  const stat  = ISS_STATUSES[iss.status]     || {label:iss.status,   color:'#64748b'};
+  const due   = iss.dueDate ? `<span style="font-size:11px;color:var(--muted);">Due: ${iss.dueDate}</span>` : '';
+  const assignedTo = iss.assignedTo ? `<span style="font-size:11px;color:var(--muted);">→ ${iss.assignedTo}</span>` : '';
+  const area  = iss.roomArea ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">📍 ${esc(iss.roomArea)}</div>` : '';
+  let photos = [];
+  try{ photos = JSON.parse(iss.photos_json||'[]'); }catch(e){}
+  const thumb = photos.length > 0
+    ? `<img src="${photos[0].url||photos[0]}" style="width:100%;height:100px;object-fit:cover;border-radius:6px;margin-top:8px;cursor:pointer;" onclick="openIssueDrawer(${iss.id})">`
+    : '';
+  const isOpen = iss.status==='open'||iss.status==='in_progress';
+  return `<div class="iss-card" onclick="openIssueDrawer(${iss.id})" style="border-left:3px solid ${pri.color};">
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+      <span class="iss-pri" style="background:${pri.color}22;color:${pri.color};">${pri.label}</span>
+      <span class="iss-type" style="background:${typ.color}22;color:${typ.color};">${typ.label}</span>
+      <span class="iss-status" style="background:${stat.color}22;color:${stat.color};margin-left:auto;">${stat.label}</span>
+    </div>
+    <div style="font-size:14px;font-weight:600;margin-bottom:4px;">${esc(iss.title)}</div>
+    ${iss.description ? `<div style="font-size:12px;color:var(--muted);margin-bottom:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${esc(iss.description)}</div>` : ''}
+    ${area}
+    ${thumb}
+    <div style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap;">
+      ${assignedTo}${due}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;" onclick="event.stopPropagation()">
+      <button class="btn btn-ghost" style="flex:1;font-size:12px;padding:5px 10px;" onclick="openIssueModal({id:${iss.id}})">Edit</button>
+      ${isOpen ? `<button class="btn btn-primary" style="flex:1;font-size:12px;padding:5px 10px;" onclick="openResolveModal(${iss.id})">Resolve</button>` : ''}
+      <button class="btn btn-ghost" style="font-size:12px;padding:5px 10px;color:var(--red);border-color:var(--red);" onclick="deleteIssue(${iss.id})">🗑</button>
+    </div>
+  </div>`;
+}
+
+async function openIssueDrawer(id){
+  document.getElementById('iss-drawer-bg').classList.add('open');
+  document.getElementById('iss-drawer').innerHTML = '<p style="color:var(--muted);padding:24px;text-align:center;">Loading…</p>';
+  try{
+    const r = await fetch(`${API}/api/issues/${id}`, {headers: ah()});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Failed');
+    // getIssue returns the issue object directly (not wrapped)
+    renderIssueDrawer(d.id ? d : d.issue);
+  } catch(e){
+    document.getElementById('iss-drawer').innerHTML = `<p style="color:var(--red);padding:24px;">Error: ${e.message}</p>`;
+  }
+}
+
+function closeIssueDrawer(){
+  document.getElementById('iss-drawer-bg').classList.remove('open');
+}
+
+function renderIssueDrawer(iss){
+  const pri   = ISS_PRIORITIES[iss.priority] || {label:iss.priority, color:'#64748b'};
+  const typ   = ISS_TYPES[iss.type]          || {label:iss.type,     color:'#64748b'};
+  const stat  = ISS_STATUSES[iss.status]     || {label:iss.status,   color:'#64748b'};
+  let photos = [];
+  try{ photos = JSON.parse(iss.photos_json||'[]'); }catch(e){}
+  const photoGrid = photos.length > 0
+    ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px;">
+         ${photos.map(p=>{
+           const url = p.url||p;
+           return `<img src="${url}" style="width:100%;height:80px;object-fit:cover;border-radius:6px;cursor:pointer;" onclick="window.open('${url}','_blank')">`;
+         }).join('')}
+       </div>`
+    : '';
+
+  const isOpen = iss.status==='open'||iss.status==='in_progress';
+  const fields = [
+    ['Priority', `<span style="color:${pri.color};font-weight:600;">${pri.label}</span>`],
+    ['Type',     `<span style="color:${typ.color};">${typ.label}</span>`],
+    ['Status',   `<span style="color:${stat.color};font-weight:600;">${stat.label}</span>`],
+    iss.roomArea    ? ['Area', esc(iss.roomArea)] : null,
+    iss.assignedTo  ? ['Assigned To', esc(iss.assignedTo)] : null,
+    iss.dueDate     ? ['Due Date', iss.dueDate] : null,
+    iss.reportedBy  ? ['Reported By', esc(iss.reportedBy)] : null,
+    iss.resolution  ? ['Resolution', `<em style="color:var(--muted);">${esc(iss.resolution)}</em>`] : null,
+  ].filter(Boolean);
+
+  document.getElementById('iss-drawer').innerHTML = `
+  <div style="padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;">
+    <div style="flex:1">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+        <span class="iss-pri" style="background:${pri.color}22;color:${pri.color};">${pri.label}</span>
+        <span class="iss-type" style="background:${typ.color}22;color:${typ.color};">${typ.label}</span>
+        <span class="iss-status" style="background:${stat.color}22;color:${stat.color};">${stat.label}</span>
+      </div>
+      <div style="font-size:16px;font-weight:700;">${esc(iss.title)}</div>
+      ${iss.description ? `<div style="font-size:13px;color:var(--muted);margin-top:6px;">${esc(iss.description)}</div>` : ''}
+    </div>
+    <button onclick="closeIssueDrawer()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:0;">✕</button>
+  </div>
+  <div style="padding:20px;overflow-y:auto;flex:1;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;">
+      ${fields.map(([k,v])=>`<div style="background:var(--surface2);border-radius:7px;padding:10px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:3px;">${k}</div>
+        <div style="font-size:13px;">${v}</div>
+      </div>`).join('')}
+    </div>
+    ${photoGrid}
+    <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+      <button class="btn btn-ghost" style="flex:1;" onclick="closeIssueDrawer();openIssueModal({id:${iss.id}})">✏ Edit</button>
+      ${isOpen ? `<button class="btn btn-primary" style="flex:1;" onclick="closeIssueDrawer();openResolveModal(${iss.id})">✅ Resolve</button>` : ''}
+      <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red);padding:8px 14px;" onclick="closeIssueDrawer();deleteIssue(${iss.id})">🗑</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:16px;text-align:right;">
+      Created: ${new Date(iss.createdAt).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}
+      ${iss.updatedAt && iss.updatedAt !== iss.createdAt ? ` · Updated: ${new Date(iss.updatedAt).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})}` : ''}
+    </div>
+  </div>`;
+}
+
+async function openIssueModal(editData){
+  window._issEditId = editData?.id || null;
+  window._issPendingPhotos = [];
+
+  const overlay = document.getElementById('iss-report-overlay');
+  overlay.classList.add('open');
+
+  // Reset form
+  ['iss-type','iss-priority','iss-title','iss-desc','iss-area','iss-assigned','iss-due','iss-task-link','iss-mat-link'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  const photoInput = document.getElementById('iss-photo-input');
+  if(photoInput) photoInput.value = '';
+  document.getElementById('iss-photo-preview').innerHTML = '';
+
+  // title
+  const headerEl = document.getElementById('iss-modal-header');
+  if(headerEl) headerEl.textContent = window._issEditId ? 'Edit Issue' : 'Report Issue';
+  const submitBtn = document.getElementById('iss-submit-btn');
+  if(submitBtn) submitBtn.textContent = window._issEditId ? 'Save Changes' : 'Report Issue';
+
+  // Populate task dropdown
+  const taskSel = document.getElementById('iss-task-link');
+  if(taskSel){
+    taskSel.innerHTML = '<option value="">— Link to Task (optional) —</option>';
+    try{
+      const r = await fetch(`${API}/api/projects/${projectId}/tasks`, {headers: ah()});
+      if(r.ok){
+        const d = await r.json();
+        (d.tasks||[]).forEach(t=>{
+          const o = document.createElement('option');
+          o.value = t.id;
+          o.textContent = t.title;
+          taskSel.appendChild(o);
+        });
+      }
+    }catch(e){}
+  }
+
+  // Populate material dropdown
+  const matSel = document.getElementById('iss-mat-link');
+  if(matSel){
+    matSel.innerHTML = '<option value="">— Link to Material (optional) —</option>';
+    try{
+      const r = await fetch(`${API}/api/projects/${projectId}/materials`, {headers: ah()});
+      if(r.ok){
+        const d = await r.json();
+        (d.materials||[]).forEach(m=>{
+          const o = document.createElement('option');
+          o.value = m.id;
+          o.textContent = m.name;
+          matSel.appendChild(o);
+        });
+      }
+    }catch(e){}
+  }
+
+  // If editing, load existing data
+  if(window._issEditId){
+    try{
+      const r = await fetch(`${API}/api/issues/${window._issEditId}`, {headers: ah()});
+      if(r.ok){
+        const d = await r.json();
+        const iss = d.id ? d : d.issue; // getIssue returns issue directly
+        const setVal = (id,v)=>{ const el=document.getElementById(id); if(el&&v!=null) el.value=v; };
+        setVal('iss-type',      iss.type);
+        setVal('iss-priority',  iss.priority);
+        setVal('iss-title',     iss.title);
+        setVal('iss-desc',      iss.description);
+        setVal('iss-area',      iss.roomArea);
+        setVal('iss-due',       iss.dueDate);
+        setVal('iss-task-link', iss.relatedTaskId);
+        setVal('iss-mat-link',  iss.relatedMaterialId);
+        // Populate assignedTo — add as option if not present
+        if(iss.assignedTo){
+          const asel = document.getElementById('iss-assigned');
+          if(asel){
+            if(![...asel.options].some(o=>o.value===iss.assignedTo)){
+              const o = document.createElement('option');
+              o.value = iss.assignedTo; o.textContent = iss.assignedTo;
+              asel.appendChild(o);
+            }
+            asel.value = iss.assignedTo;
+          }
+        }
+      }
+    }catch(e){}
+  }
+}
+
+function closeIssueModal(){
+  document.getElementById('iss-report-overlay').classList.remove('open');
+  window._issPendingPhotos = [];
+  window._issEditId = null;
+}
+
+function issPreviewPhotos(input){
+  const preview = document.getElementById('iss-photo-preview');
+  preview.innerHTML = '';
+  window._issPendingPhotos = Array.from(input.files);
+  window._issPendingPhotos.forEach(file=>{
+    const url = URL.createObjectURL(file);
+    const img = document.createElement('img');
+    img.src = url;
+    img.style.cssText = 'width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--border);';
+    preview.appendChild(img);
+  });
+}
+
+async function submitIssue(){
+  const getVal = id => (document.getElementById(id)||{}).value||'';
+  const type     = getVal('iss-type');
+  const priority = getVal('iss-priority');
+  const title    = getVal('iss-title').trim();
+  const desc     = getVal('iss-desc').trim();
+  const area     = getVal('iss-area').trim();
+  const assigned = getVal('iss-assigned').trim();
+  const due      = getVal('iss-due');
+  const taskId   = getVal('iss-task-link')||null;
+  const matId    = getVal('iss-mat-link')||null;
+
+  if(!type||!priority||!title){ toast('Type, priority and title are required','error'); return; }
+
+  const btn = document.getElementById('iss-submit-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+
+  try{
+    let issueId = window._issEditId;
+    const payload = {type, priority, title, description: desc||null, roomArea: area||null,
+      assignedTo: assigned||null, dueDate: due||null,
+      relatedTaskId: taskId?Number(taskId):null, relatedMaterialId: matId?Number(matId):null};
+
+    if(issueId){
+      const r = await fetch(`${API}/api/issues/${issueId}`, {method:'PUT', headers:jh(), body:JSON.stringify(payload)});
+      if(!r.ok){ const d=await r.json(); throw new Error(d.error||'Update failed'); }
+    } else {
+      const r = await fetch(`${API}/api/projects/${projectId}/issues`, {method:'POST', headers:jh(), body:JSON.stringify(payload)});
+      const d = await r.json();
+      if(!r.ok) throw new Error(d.error||'Create failed');
+      issueId = d.id;
+    }
+
+    // Upload photos
+    if(window._issPendingPhotos.length > 0){
+      for(const file of window._issPendingPhotos){
+        const fd = new FormData();
+        fd.append('file', file);
+        await fetch(`${API}/api/issues/${issueId}/upload`, {method:'POST', headers:ah(), body:fd});
+      }
+    }
+
+    closeIssueModal();
+    toast(window._issEditId ? 'Issue updated' : 'Issue reported','success');
+    window._issLoaded = false;
+    await loadIssuesTab();
+  } catch(e){
+    toast(e.message||'Failed','error');
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='Submit Issue'; }
+  }
+}
+
+function openResolveModal(id){
+  window._issResolveId = id;
+  document.getElementById('iss-resolution').value = '';
+  document.getElementById('iss-resolve-status').value = 'resolved';
+  document.getElementById('iss-resolve-overlay').classList.add('open');
+}
+
+function closeResolveModal(){
+  document.getElementById('iss-resolve-overlay').classList.remove('open');
+  window._issResolveId = null;
+}
+
+async function submitResolve(){
+  const resolution = document.getElementById('iss-resolution').value.trim();
+  const status     = document.getElementById('iss-resolve-status').value;
+  if(status==='resolved' && !resolution){ toast('Resolution note is required','error'); return; }
+
+  const btn = document.getElementById('iss-resolve-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Saving…'; }
+
+  try{
+    const r = await fetch(`${API}/api/issues/${window._issResolveId}/resolve`, {
+      method:'POST', headers:jh(),
+      body: JSON.stringify({status, resolution: resolution||null})
+    });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Failed');
+    closeResolveModal();
+    toast('Issue updated','success');
+    window._issLoaded = false;
+    await loadIssuesTab();
+  } catch(e){
+    toast(e.message||'Failed','error');
+  } finally {
+    if(btn){ btn.disabled=false; btn.textContent='Save'; }
+  }
+}
+
+async function deleteIssue(id){
+  if(!confirm('Delete this issue? This cannot be undone.')) return;
+  try{
+    const r = await fetch(`${API}/api/issues/${id}`, {method:'DELETE', headers:ah()});
+    if(!r.ok){ const d=await r.json(); throw new Error(d.error||'Failed'); }
+    toast('Issue deleted','success');
+    window._issLoaded = false;
+    await loadIssuesTab();
+  } catch(e){
+    toast(e.message||'Failed','error');
+  }
+}
+
+function issSetFilter(field, value){
+  if(field==='status')   window._issFilter = value;
+  if(field==='priority') window._issPriorityFilter = value;
+  if(field==='type')     window._issTypeFilter = value;
+  renderIssuesUI();
+}
+
+function updateCriticalBanner(count){
+  const banner = document.getElementById('critical-banner');
+  const text   = document.getElementById('critical-banner-text');
+  if(!banner) return;
+  if(count > 0){
+    banner.classList.add('visible');
+    if(text) text.textContent = `⚠ ${count} critical issue${count>1?'s':''} open — tap to view`;
+  } else {
+    banner.classList.remove('visible');
+  }
 }
 
 init();
