@@ -234,6 +234,76 @@
   /* Mobile overlay */
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;}
   .overlay.open{display:block;}
+
+  /* ── Site Log ─────────────────────────────────────── */
+  .sl-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
+  .sl-filter-bar{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+  .sl-filter-btn{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+  .sl-filter-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .sl-filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .sl-share-btn{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+  .sl-share-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* Timeline */
+  .sl-timeline{position:relative;padding-left:28px;}
+  .sl-date-group{margin-bottom:28px;}
+  .sl-date-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+  .sl-date-label::before{content:'';position:absolute;left:8px;width:2px;background:var(--border);top:0;bottom:0;}
+  .sl-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative;transition:border-color .15s;}
+  .sl-card:hover{border-color:rgba(59,130,246,.3);}
+  .sl-card::before{content:'';position:absolute;left:-24px;top:18px;width:10px;height:10px;border-radius:50%;border:2px solid var(--surface);background:var(--muted);}
+  .sl-card.type-progress::before{background:#22c55e;}
+  .sl-card.type-issue::before{background:#ef4444;}
+  .sl-card.type-delivery::before{background:#3b82f6;}
+  .sl-card.type-inspection::before{background:#eab308;}
+  .sl-card.type-meeting::before{background:#a855f7;}
+  .sl-card.type-milestone::before{background:#f97316;}
+  .sl-card-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+  .sl-type-badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;}
+  .sl-badge-progress{background:rgba(34,197,94,.12);color:#4ade80;}
+  .sl-badge-issue{background:rgba(239,68,68,.12);color:#f87171;}
+  .sl-badge-delivery{background:rgba(59,130,246,.12);color:#60a5fa;}
+  .sl-badge-inspection{background:rgba(234,179,8,.12);color:#fbbf24;}
+  .sl-badge-meeting{background:rgba(168,85,247,.12);color:#c084fc;}
+  .sl-badge-milestone{background:rgba(249,115,22,.12);color:#fb923c;}
+  .sl-card-title{font-size:14px;font-weight:600;flex:1;line-height:1.3;}
+  .sl-card-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px;}
+  .sl-card-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:8px;white-space:pre-wrap;}
+  .sl-area-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);}
+  .sl-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;margin-top:8px;}
+  .sl-photo{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:zoom-in;border:1px solid var(--border);}
+  .sl-card-actions{display:flex;gap:6px;margin-top:10px;justify-content:flex-end;}
+  .sl-client-chip{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:10px;font-size:10px;background:rgba(168,85,247,.12);color:#c084fc;font-weight:600;}
+  .sl-empty{padding:56px;text-align:center;color:var(--muted);}
+  .sl-empty svg{opacity:.3;margin-bottom:12px;}
+  .sl-load-more{width:100%;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;margin-top:8px;transition:all .15s;}
+  .sl-load-more:hover{border-color:var(--accent);color:var(--accent);}
+
+  /* Post Update FAB */
+  .sl-fab{position:fixed;bottom:24px;right:24px;z-index:80;background:var(--accent);color:#fff;border:none;border-radius:50px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 4px 20px rgba(59,130,246,.4);display:none;align-items:center;gap:8px;transition:all .15s;}
+  .sl-fab:hover{background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 6px 24px rgba(59,130,246,.5);}
+  .sl-fab.visible{display:flex;}
+
+  /* Post Update Modal */
+  .sl-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:16px;}
+  .sl-modal-overlay.open{display:flex;}
+  .sl-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;}
+  .sl-modal-title{font-size:17px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+  .sl-field{margin-bottom:14px;}
+  .sl-field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;}
+  .sl-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .sl-type-opt{padding:8px 6px;border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;background:var(--surface2);}
+  .sl-type-opt:hover{border-color:var(--accent);}
+  .sl-type-opt.selected{border-color:var(--accent);background:rgba(59,130,246,.1);color:#60a5fa;}
+  .sl-type-opt .sl-type-icon{font-size:16px;display:block;margin-bottom:2px;}
+  .sl-vis-toggle{display:flex;gap:8px;}
+  .sl-vis-opt{flex:1;padding:8px;border:1px solid var(--border);border-radius:8px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;background:var(--surface2);}
+  .sl-vis-opt.selected{border-color:var(--accent);background:rgba(59,130,246,.1);color:#60a5fa;}
+  .sl-photo-preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-top:6px;}
+  .sl-photo-preview-item{position:relative;border-radius:6px;overflow:hidden;aspect-ratio:1;}
+  .sl-photo-preview-item img{width:100%;height:100%;object-fit:cover;}
+  .sl-photo-del{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:50%;width:16px;height:16px;cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;}
+
   @media(max-width:768px){
     .sidebar{transform:translateX(-100%);}
     .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.5);}
@@ -275,6 +345,108 @@
   </div>
 </aside>
 <div class="overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+
+<!-- Site Log FAB -->
+<button class="sl-fab" id="sl-fab" onclick="openPostUpdateModal()">
+  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  Post Update
+</button>
+
+<!-- Post Update Modal -->
+<div class="sl-modal-overlay" id="sl-modal-overlay" onclick="closeSLModalOnBg(event)">
+  <div class="sl-modal" id="sl-modal">
+    <div class="sl-modal-title">
+      <span id="sl-modal-header">Post Site Update</span>
+      <button onclick="closeSLModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:2px 6px;">×</button>
+    </div>
+
+    <!-- Type selector -->
+    <div class="sl-field">
+      <label>Update Type</label>
+      <div class="sl-type-grid" id="sl-type-grid">
+        <div class="sl-type-opt selected" data-type="progress" onclick="slSelectType('progress')"><span class="sl-type-icon">🔨</span>Progress</div>
+        <div class="sl-type-opt" data-type="issue" onclick="slSelectType('issue')"><span class="sl-type-icon">⚠️</span>Issue</div>
+        <div class="sl-type-opt" data-type="delivery" onclick="slSelectType('delivery')"><span class="sl-type-icon">🚚</span>Delivery</div>
+        <div class="sl-type-opt" data-type="inspection" onclick="slSelectType('inspection')"><span class="sl-type-icon">🔍</span>Inspection</div>
+        <div class="sl-type-opt" data-type="meeting" onclick="slSelectType('meeting')"><span class="sl-type-icon">💬</span>Meeting</div>
+        <div class="sl-type-opt" data-type="milestone" onclick="slSelectType('milestone')"><span class="sl-type-icon">🏁</span>Milestone</div>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="sl-field">
+      <label>Title *</label>
+      <input id="sl-title" class="form-control" placeholder="Brief summary of this update…">
+    </div>
+
+    <!-- Description -->
+    <div class="sl-field">
+      <label>Description</label>
+      <textarea id="sl-desc" class="form-control" rows="3" placeholder="Detailed notes, observations…" style="resize:vertical;min-height:70px"></textarea>
+    </div>
+
+    <!-- Area + Task row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="sl-field">
+        <label>Room / Area</label>
+        <input id="sl-area" class="form-control" placeholder="e.g. Master Bedroom">
+      </div>
+      <div class="sl-field">
+        <label>Link Task</label>
+        <select id="sl-task" class="form-control">
+          <option value="">None</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Visibility -->
+    <div class="sl-field">
+      <label>Visibility</label>
+      <div class="sl-vis-toggle">
+        <div class="sl-vis-opt selected" data-vis="internal" onclick="slSelectVis('internal')">🔒 Internal Only</div>
+        <div class="sl-vis-opt" data-vis="client_visible" onclick="slSelectVis('client_visible')">👁 Visible to Client</div>
+      </div>
+    </div>
+
+    <!-- Photos -->
+    <div class="sl-field">
+      <label>Photos</label>
+      <label class="file-upload-label" style="width:100%;justify-content:center">
+        <input type="file" accept="image/*" multiple style="display:none" id="sl-photo-input" onchange="slPreviewPhotos(this)">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Add Photos
+      </label>
+      <div class="sl-photo-preview" id="sl-photo-preview"></div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+      <button class="btn btn-ghost" onclick="closeSLModal()">Cancel</button>
+      <button class="btn btn-primary" id="sl-submit-btn" onclick="submitSiteUpdate()">Post Update</button>
+    </div>
+    <div id="sl-modal-err" style="font-size:12px;color:var(--red);text-align:center;margin-top:8px"></div>
+  </div>
+</div>
+
+<!-- Share Token Modal -->
+<div class="sl-modal-overlay" id="sl-share-modal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="sl-modal" style="max-width:400px">
+    <div class="sl-modal-title">
+      <span>Client Share Link</span>
+      <button onclick="document.getElementById('sl-share-modal').classList.remove('open')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px">×</button>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6">Share this link with your client. They can view all updates marked as <strong style="color:var(--text)">Visible to Client</strong> without logging in.</p>
+    <input id="sl-share-url" class="form-control" readonly style="font-size:12px;font-family:monospace" onclick="this.select()">
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-primary" style="flex:1" onclick="copyShareLink()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy Link
+      </button>
+      <button class="btn btn-ghost" onclick="document.getElementById('sl-share-modal').classList.remove('open')">Close</button>
+    </div>
+    <div id="sl-share-copied" style="font-size:12px;color:var(--green);text-align:center;margin-top:8px;display:none">✓ Copied to clipboard!</div>
+  </div>
+</div>
 
 <div class="main">
   <div class="topbar">
@@ -406,6 +578,11 @@ function renderPage(){
         Tasks
         <span class="tab-count">${c.tasks||0}</span>
       </button>
+      <button class="tab-btn" onclick="showTab('sitelog',this)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Site Log
+        <span class="tab-count" id="sitelog-tab-count">0</span>
+      </button>
     </div>
 
     <!-- Overview Tab -->
@@ -524,6 +701,11 @@ function renderPage(){
     <div class="tab-panel" id="tab-tasks">
       <div id="tasks-ui"></div>
     </div>
+
+    <!-- Site Log Tab -->
+    <div class="tab-panel" id="tab-sitelog">
+      <div id="sitelog-ui"></div>
+    </div>
   `;
 
   // Populate assigned select
@@ -559,6 +741,10 @@ function showTab(name, btn){
   if(name==='proposal' && !window._propLoaded)     loadProposalTab();
   if(name==='payments' && !window._pymLoaded)      loadPaymentsTab();
   if(name==='tasks'    && !window._tskLoaded)      loadTasksTab();
+  if(name==='sitelog'  && !window._slLoaded)       loadSiteLogTab();
+  // Show/hide Post Update FAB
+  const fab=document.getElementById('sl-fab');
+  if(fab) fab.classList.toggle('visible', name==='sitelog');
 }
 
 async function quickUpdateStatus(){
@@ -2437,6 +2623,351 @@ async function deleteTaskItem(id){
     window._tskLoaded=false;
     loadTasksTab();
   } catch(e){ toast(e.message||'Failed','error'); }
+}
+
+// ── Site Log ─────────────────────────────────────────────────────────────
+
+window._slLoaded = false;
+window._slUpdates = [];
+window._slTotal = 0;
+window._slOffset = 0;
+window._slFilter = 'all';
+window._slEditId = null;
+window._slPendingPhotos = []; // {file, previewUrl} for new posts
+window._slExistingPhotos = []; // {url, caption} already uploaded (for edits)
+
+const SL_TYPES = {
+  progress:   { label:'Progress',   icon:'🔨', badge:'sl-badge-progress' },
+  issue:      { label:'Issue',       icon:'⚠️',  badge:'sl-badge-issue' },
+  delivery:   { label:'Delivery',   icon:'🚚', badge:'sl-badge-delivery' },
+  inspection: { label:'Inspection', icon:'🔍', badge:'sl-badge-inspection' },
+  meeting:    { label:'Meeting',    icon:'💬', badge:'sl-badge-meeting' },
+  milestone:  { label:'Milestone',  icon:'🏁', badge:'sl-badge-milestone' },
+};
+
+async function loadSiteLogTab(){
+  window._slLoaded = true;
+  window._slOffset = 0;
+  window._slUpdates = [];
+  renderSiteLogUI();
+  document.getElementById('sl-fab')?.classList.add('visible');
+  await fetchSiteLogPage(true);
+  // Pre-populate task dropdown
+  if(!window._tasks_for_sl) {
+    try {
+      const r = await fetch(`${API}/api/projects/${projectId}/tasks`, { headers: ah() });
+      const d = await r.json();
+      window._tasks_for_sl = (d.tasks||[]);
+    } catch { window._tasks_for_sl = []; }
+  }
+}
+
+function renderSiteLogUI(){
+  document.getElementById('sitelog-ui').innerHTML = `
+    <div style="padding:4px 0">
+      <div class="sl-toolbar">
+        <div class="sl-filter-bar" id="sl-filter-bar">
+          ${['all','progress','issue','delivery','inspection','meeting','milestone'].map(t=>
+            `<button class="sl-filter-btn${t===window._slFilter?' active':''}" onclick="slSetFilter('${t}')">${t==='all'?'All':SL_TYPES[t].icon+' '+SL_TYPES[t].label}</button>`
+          ).join('')}
+        </div>
+        <button class="sl-share-btn" onclick="openShareModal()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Share
+        </button>
+      </div>
+      <div id="sl-timeline">
+        <div style="padding:40px;text-align:center;color:var(--muted)"><span class="spinner"></span> Loading…</div>
+      </div>
+    </div>
+  `;
+}
+
+async function fetchSiteLogPage(reset=false){
+  if(reset){ window._slOffset=0; window._slUpdates=[]; }
+  const params = new URLSearchParams({ limit:10, offset:window._slOffset });
+  if(window._slFilter!=='all') params.set('type', window._slFilter);
+  try {
+    const r = await fetch(`${API}/api/projects/${projectId}/updates?${params}`, { headers: ah() });
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Load failed');
+    window._slUpdates = reset ? d.updates : [...window._slUpdates, ...d.updates];
+    window._slTotal = d.total;
+    window._slOffset = window._slUpdates.length;
+    renderSiteLogTimeline();
+    // Update tab count
+    const tc = document.getElementById('sitelog-tab-count');
+    if(tc) tc.textContent = window._slTotal||0;
+  } catch(e) {
+    document.getElementById('sl-timeline').innerHTML = `<div class="sl-empty"><div style="color:var(--red)">${e.message}</div></div>`;
+  }
+}
+
+function renderSiteLogTimeline(){
+  const tl = document.getElementById('sl-timeline');
+  if(!tl) return;
+  if(!window._slUpdates.length){
+    tl.innerHTML = `<div class="sl-empty">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div style="margin-top:8px">No updates yet</div>
+      <div style="font-size:12px;margin-top:4px">Post the first site update →</div>
+    </div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  window._slUpdates.forEach(u => {
+    const dateKey = u.createdAt ? u.createdAt.substring(0,10) : 'Unknown';
+    if(!groups[dateKey]) groups[dateKey]=[];
+    groups[dateKey].push(u);
+  });
+
+  let html = '<div class="sl-timeline">';
+  Object.entries(groups).forEach(([date, updates]) => {
+    const label = formatSLDate(date);
+    html += `<div class="sl-date-group">
+      <div class="sl-date-label">${label}</div>
+      ${updates.map(u => renderSLCard(u)).join('')}
+    </div>`;
+  });
+  html += '</div>';
+
+  if(window._slUpdates.length < window._slTotal) {
+    html += `<button class="sl-load-more" onclick="fetchSiteLogPage(false)">Load more (${window._slTotal - window._slUpdates.length} remaining)</button>`;
+  }
+  tl.innerHTML = html;
+}
+
+function renderSLCard(u){
+  const t = SL_TYPES[u.updateType]||SL_TYPES.progress;
+  let photos = [];
+  try { photos = JSON.parse(u.photos_json||'[]'); } catch {}
+  const canEdit = true; // simplified — backend enforces ownership
+  const isClient = u.visibility==='client_visible';
+
+  return `<div class="sl-card type-${u.updateType}" id="sl-card-${u.id}">
+    <div class="sl-card-header">
+      <span class="sl-type-badge ${t.badge}">${t.icon} ${t.label}</span>
+      <div style="flex:1">
+        <div class="sl-card-title">${esc(u.title)}</div>
+        <div class="sl-card-meta">
+          <span>${esc(u.postedBy)}</span>
+          <span>·</span>
+          <span>${fmtTime(u.createdAt)}</span>
+          ${u.roomArea ? `<span class="sl-area-tag"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${esc(u.roomArea)}</span>` : ''}
+          ${isClient ? `<span class="sl-client-chip">👁 Client</span>` : ''}
+        </div>
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:11px" onclick="editSLUpdate(${u.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:11px" onclick="deleteSLUpdate(${u.id})">✕</button>
+      </div>
+    </div>
+    ${u.description ? `<div class="sl-card-desc">${esc(u.description)}</div>` : ''}
+    ${photos.length ? `<div class="sl-photos">${photos.map(p=>`<img class="sl-photo" src="${p.url||p}" alt="${esc(p.caption||'')}" onclick="previewImg('${p.url||p}')">`).join('')}</div>` : ''}
+  </div>`;
+}
+
+function formatSLDate(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
+  if(d.getTime()===today.getTime()) return '📅 Today';
+  if(d.getTime()===yesterday.getTime()) return '📅 Yesterday';
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+}
+
+function fmtTime(dt){
+  if(!dt) return '';
+  const d = new Date(dt);
+  return d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+
+function slSetFilter(type){
+  window._slFilter = type;
+  document.querySelectorAll('.sl-filter-btn').forEach(b=>{
+    const t=b.textContent.toLowerCase();
+    b.classList.toggle('active', b.getAttribute('onclick').includes(`'${type}'`));
+  });
+  fetchSiteLogPage(true);
+}
+
+// ── Post Update Modal ────────────────────────────────
+
+function openPostUpdateModal(editData=null){
+  window._slEditId = editData ? editData.id : null;
+  window._slPendingPhotos = [];
+  window._slExistingPhotos = editData ? (()=>{ try{return JSON.parse(editData.photos_json||'[]')}catch{return[]} })() : [];
+
+  document.getElementById('sl-modal-header').textContent = editData ? 'Edit Update' : 'Post Site Update';
+  document.getElementById('sl-title').value = editData?.title||'';
+  document.getElementById('sl-desc').value = editData?.description||'';
+  document.getElementById('sl-area').value = editData?.roomArea||'';
+  document.getElementById('sl-modal-err').textContent = '';
+  document.getElementById('sl-submit-btn').textContent = editData ? 'Save Changes' : 'Post Update';
+  document.getElementById('sl-submit-btn').disabled = false;
+
+  // Reset type
+  slSelectType(editData?.updateType||'progress');
+  slSelectVis(editData?.visibility||'internal');
+
+  // Populate task dropdown
+  const sel = document.getElementById('sl-task');
+  sel.innerHTML = '<option value="">None</option>';
+  (window._tasks_for_sl||[]).forEach(t=>{
+    const o = document.createElement('option');
+    o.value = t.id; o.textContent = t.taskName||t.name||`Task #${t.id}`;
+    if(editData?.taskId===t.id) o.selected=true;
+    sel.appendChild(o);
+  });
+  if(editData?.taskId) sel.value = editData.taskId;
+
+  // Photo preview: existing
+  renderSLPhotoPreview();
+
+  document.getElementById('sl-modal-overlay').classList.add('open');
+}
+
+function closeSLModal(){
+  document.getElementById('sl-modal-overlay').classList.remove('open');
+  window._slPendingPhotos = [];
+  document.getElementById('sl-photo-input').value='';
+}
+function closeSLModalOnBg(e){ if(e.target===document.getElementById('sl-modal-overlay')) closeSLModal(); }
+
+function slSelectType(type){
+  document.querySelectorAll('.sl-type-opt').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.type===type);
+  });
+}
+function slSelectVis(vis){
+  document.querySelectorAll('.sl-vis-opt').forEach(el=>{
+    el.classList.toggle('selected', el.dataset.vis===vis);
+  });
+}
+function getSelectedType(){ return document.querySelector('.sl-type-opt.selected')?.dataset.type||'progress'; }
+function getSelectedVis(){  return document.querySelector('.sl-vis-opt.selected')?.dataset.vis||'internal'; }
+
+function slPreviewPhotos(input){
+  const files = Array.from(input.files);
+  files.forEach(f => {
+    const url = URL.createObjectURL(f);
+    window._slPendingPhotos.push({file:f, previewUrl:url});
+  });
+  renderSLPhotoPreview();
+  input.value='';
+}
+
+function renderSLPhotoPreview(){
+  const container = document.getElementById('sl-photo-preview');
+  if(!container) return;
+  const existing = window._slExistingPhotos.map((p,i)=>`<div class="sl-photo-preview-item">
+    <img src="${p.url||p}">
+    <button class="sl-photo-del" onclick="slRemoveExistingPhoto(${i})">✕</button>
+  </div>`).join('');
+  const pending = window._slPendingPhotos.map((p,i)=>`<div class="sl-photo-preview-item">
+    <img src="${p.previewUrl}">
+    <button class="sl-photo-del" onclick="slRemovePendingPhoto(${i})">✕</button>
+  </div>`).join('');
+  container.innerHTML = existing + pending;
+}
+function slRemoveExistingPhoto(i){ window._slExistingPhotos.splice(i,1); renderSLPhotoPreview(); }
+function slRemovePendingPhoto(i){ window._slPendingPhotos.splice(i,1); renderSLPhotoPreview(); }
+
+async function submitSiteUpdate(){
+  const title = document.getElementById('sl-title').value.trim();
+  const errEl = document.getElementById('sl-modal-err');
+  if(!title){ errEl.textContent='Title is required'; return; }
+  const btn = document.getElementById('sl-submit-btn');
+  btn.disabled=true; btn.textContent = window._slEditId ? 'Saving…':'Posting…';
+  errEl.textContent='';
+
+  try {
+    const body = {
+      updateType: getSelectedType(),
+      title,
+      description: document.getElementById('sl-desc').value.trim(),
+      roomArea: document.getElementById('sl-area').value.trim(),
+      taskId: document.getElementById('sl-task').value ? Number(document.getElementById('sl-task').value) : null,
+      visibility: getSelectedVis(),
+      photos: [...window._slExistingPhotos]
+    };
+
+    // Step 1: Create or update the record
+    let updateId;
+    if(window._slEditId){
+      const r = await fetch(`${API}/api/updates/${window._slEditId}`,{method:'PUT',headers:jh(),body:JSON.stringify(body)});
+      const d = await r.json();
+      if(!r.ok) throw new Error(d.error||'Save failed');
+      updateId = window._slEditId;
+    } else {
+      const r = await fetch(`${API}/api/projects/${projectId}/updates`,{method:'POST',headers:jh(),body:JSON.stringify(body)});
+      const d = await r.json();
+      if(!r.ok) throw new Error(d.error||'Post failed');
+      updateId = d.id;
+    }
+
+    // Step 2: Upload pending photos (non-fatal)
+    for(const p of window._slPendingPhotos){
+      try{
+        const fd = new FormData();
+        fd.append('file', p.file);
+        await fetch(`${API}/api/updates/${updateId}/upload`,{method:'POST',headers:{'X-Session-ID':getSession()},body:fd});
+      }catch(e){ console.warn('Photo upload failed',e); }
+    }
+
+    closeSLModal();
+    toast(window._slEditId?'Update saved':'Update posted');
+    window._slLoaded=false; // Force reload
+    window._slLoaded=true;
+    await fetchSiteLogPage(true);
+  } catch(e){
+    errEl.textContent = e.message;
+    btn.disabled=false; btn.textContent = window._slEditId?'Save Changes':'Post Update';
+  }
+}
+
+function editSLUpdate(id){
+  const u = window._slUpdates.find(x=>x.id===id);
+  if(!u) return;
+  openPostUpdateModal(u);
+}
+
+async function deleteSLUpdate(id){
+  if(!confirm('Delete this update?')) return;
+  try {
+    const r = await fetch(`${API}/api/updates/${id}`,{method:'DELETE',headers:ah()});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Delete failed');
+    toast('Deleted');
+    window._slUpdates = window._slUpdates.filter(u=>u.id!==id);
+    window._slTotal = Math.max(0, window._slTotal-1);
+    const tc = document.getElementById('sitelog-tab-count');
+    if(tc) tc.textContent = window._slTotal||0;
+    renderSiteLogTimeline();
+  } catch(e){ toast(e.message||'Failed','error'); }
+}
+
+async function openShareModal(){
+  try {
+    const r = await fetch(`${API}/api/projects/${projectId}/share-token`,{method:'POST',headers:ah()});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Failed');
+    const publicUrl = `${location.origin}/site-log-public.html?pid=${projectId}&token=${d.token}`;
+    document.getElementById('sl-share-url').value = publicUrl;
+    document.getElementById('sl-share-copied').style.display='none';
+    document.getElementById('sl-share-modal').classList.add('open');
+  } catch(e){ toast(e.message||'Failed','error'); }
+}
+
+function copyShareLink(){
+  const input = document.getElementById('sl-share-url');
+  input.select();
+  navigator.clipboard.writeText(input.value).then(()=>{
+    document.getElementById('sl-share-copied').style.display='block';
+    setTimeout(()=>{ document.getElementById('sl-share-copied').style.display='none'; }, 3000);
+  }).catch(()=>{ document.execCommand('copy'); });
 }
 
 init();

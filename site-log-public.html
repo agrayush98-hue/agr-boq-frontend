@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Site Log — A.G.R Automation</title>
+<style>
+  :root{
+    --bg:#0f172a;--surface:#1e293b;--surface2:#273549;--border:#334155;
+    --text:#e2e8f0;--muted:#94a3b8;--accent:#3b82f6;
+    --green:#22c55e;--red:#ef4444;--yellow:#eab308;--orange:#f97316;
+    --radius:10px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+  /* Header */
+  .pub-header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:10;}
+  .pub-brand{display:flex;align-items:center;gap:10px;}
+  .pub-brand-logo{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#3b82f6,#6366f1);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;}
+  .pub-brand-name{font-size:15px;font-weight:700;}
+  .pub-brand-tag{font-size:11px;color:var(--muted);margin-top:1px;}
+  .pub-project-info{text-align:right;}
+  .pub-project-name{font-size:14px;font-weight:700;}
+  .pub-client-name{font-size:12px;color:var(--muted);margin-top:2px;}
+  .pub-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.2);color:#4ade80;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;}
+
+  /* Main */
+  .pub-main{max-width:720px;margin:0 auto;padding:32px 16px;}
+  .pub-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;}
+  .pub-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;text-align:center;}
+  .pub-stat-val{font-size:22px;font-weight:700;color:var(--accent);}
+  .pub-stat-label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;margin-top:2px;}
+
+  /* Filter */
+  .pub-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px;}
+  .pub-filter-btn{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+  .pub-filter-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  /* Timeline */
+  .pub-timeline{position:relative;padding-left:28px;}
+  .pub-date-group{margin-bottom:28px;}
+  .pub-date-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;padding-left:4px;}
+  .pub-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;position:relative;}
+  .pub-card::before{content:'';position:absolute;left:-24px;top:20px;width:10px;height:10px;border-radius:50%;border:2px solid var(--bg);background:var(--muted);}
+  .pub-card.type-progress::before{background:#22c55e;}
+  .pub-card.type-issue::before{background:#ef4444;}
+  .pub-card.type-delivery::before{background:#3b82f6;}
+  .pub-card.type-inspection::before{background:#eab308;}
+  .pub-card.type-meeting::before{background:#a855f7;}
+  .pub-card.type-milestone::before{background:#f97316;}
+  .pub-timeline::before{content:'';position:absolute;left:4px;top:0;bottom:0;width:2px;background:var(--border);}
+
+  .pub-card-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+  .pub-type-badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;}
+  .badge-progress{background:rgba(34,197,94,.12);color:#4ade80;}
+  .badge-issue{background:rgba(239,68,68,.12);color:#f87171;}
+  .badge-delivery{background:rgba(59,130,246,.12);color:#60a5fa;}
+  .badge-inspection{background:rgba(234,179,8,.12);color:#fbbf24;}
+  .badge-meeting{background:rgba(168,85,247,.12);color:#c084fc;}
+  .badge-milestone{background:rgba(249,115,22,.12);color:#fb923c;}
+  .pub-card-title{font-size:15px;font-weight:600;flex:1;line-height:1.3;}
+  .pub-card-meta{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px;}
+  .pub-card-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-top:8px;white-space:pre-wrap;}
+  .pub-area-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--muted);}
+  .pub-photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:12px;}
+  .pub-photo{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:zoom-in;border:1px solid var(--border);}
+
+  /* State */
+  .pub-loading{padding:60px;text-align:center;color:var(--muted);}
+  .spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(255,255,255,.15);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .pub-error{padding:60px 24px;text-align:center;color:var(--muted);}
+  .pub-error .err-title{font-size:20px;font-weight:700;color:var(--red);margin-bottom:8px;}
+  .pub-empty{padding:60px;text-align:center;color:var(--muted);}
+  .pub-empty svg{opacity:.3;margin-bottom:12px;}
+
+  /* Photo lightbox */
+  .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999;align-items:center;justify-content:center;cursor:zoom-out;}
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:95vw;max-height:92vh;object-fit:contain;border-radius:6px;}
+  .lightbox-close{position:fixed;top:16px;right:20px;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;opacity:.7;}
+  .lightbox-close:hover{opacity:1;}
+
+  /* Footer */
+  .pub-footer{text-align:center;padding:32px 16px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);margin-top:40px;}
+  .pub-footer a{color:var(--accent);text-decoration:none;}
+
+  @media(max-width:600px){
+    .pub-header{padding:12px 16px;flex-direction:column;align-items:flex-start;gap:10px;}
+    .pub-project-info{text-align:left;}
+    .pub-stats{grid-template-columns:1fr 1fr;}
+    .pub-stat:last-child{grid-column:1/-1;}
+  }
+</style>
+</head>
+<body>
+
+<!-- Header (populated by JS) -->
+<header class="pub-header">
+  <div class="pub-brand">
+    <div class="pub-brand-logo">A</div>
+    <div>
+      <div class="pub-brand-name">A.G.R Automation</div>
+      <div class="pub-brand-tag">Smart Home &amp; Automation</div>
+    </div>
+  </div>
+  <div id="pub-project-header" class="pub-project-info" style="display:none">
+    <div class="pub-project-name" id="pub-proj-name">—</div>
+    <div class="pub-client-name" id="pub-client-name">—</div>
+  </div>
+  <div class="pub-badge">
+    <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Live Site Updates
+  </div>
+</header>
+
+<div class="pub-main">
+  <div id="pub-content">
+    <div class="pub-loading"><div class="spinner"></div><div style="margin-top:12px">Loading project updates…</div></div>
+  </div>
+</div>
+
+<div class="pub-footer">
+  Powered by <a href="#">A.G.R Automation</a> — Project Management System
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+const API = 'https://agr-boq-backend.agrayush98.workers.dev';
+
+const SL_TYPES = {
+  progress:   { label:'Progress',   icon:'🔨', badge:'badge-progress' },
+  issue:      { label:'Issue',       icon:'⚠️',  badge:'badge-issue' },
+  delivery:   { label:'Delivery',   icon:'🚚', badge:'badge-delivery' },
+  inspection: { label:'Inspection', icon:'🔍', badge:'badge-inspection' },
+  meeting:    { label:'Meeting',    icon:'💬', badge:'badge-meeting' },
+  milestone:  { label:'Milestone',  icon:'🏁', badge:'badge-milestone' },
+};
+
+let allUpdates = [];
+let projectData = null;
+let activeFilter = 'all';
+
+const params = new URLSearchParams(location.search);
+const projectId = params.get('pid');
+const token = params.get('token');
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function fmtDate(dateStr){
+  const d = new Date(dateStr+'T00:00:00');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
+  if(d.getTime()===today.getTime()) return '📅 Today';
+  if(d.getTime()===yesterday.getTime()) return '📅 Yesterday';
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'long',year:'numeric'});
+}
+function fmtTime(dt){
+  if(!dt) return '';
+  return new Date(dt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+
+async function init(){
+  if(!projectId || !token){
+    showError('Invalid Link', 'This share link is missing required parameters. Please ask for a new link.');
+    return;
+  }
+  try {
+    const r = await fetch(`${API}/api/projects/${projectId}/updates/client?token=${encodeURIComponent(token)}`);
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error||'Access denied');
+    projectData = d.project;
+    allUpdates  = d.updates||[];
+    renderPage();
+  } catch(e){
+    showError('Access Denied', e.message||'This link may be invalid or expired.');
+  }
+}
+
+function renderPage(){
+  // Header
+  document.getElementById('pub-proj-name').textContent   = projectData.name||'Project';
+  document.getElementById('pub-client-name').textContent = projectData.clientName||'';
+  document.getElementById('pub-project-header').style.display = '';
+  document.title = `${projectData.name} — Site Log`;
+
+  // Stats
+  const total = allUpdates.length;
+  const milestones = allUpdates.filter(u=>u.updateType==='milestone').length;
+  const issues = allUpdates.filter(u=>u.updateType==='issue').length;
+
+  const statsHtml = `<div class="pub-stats">
+    <div class="pub-stat"><div class="pub-stat-val">${total}</div><div class="pub-stat-label">Total Updates</div></div>
+    <div class="pub-stat"><div class="pub-stat-val" style="color:var(--orange)">${milestones}</div><div class="pub-stat-label">Milestones</div></div>
+    <div class="pub-stat"><div class="pub-stat-val" style="color:var(--red)">${issues}</div><div class="pub-stat-label">Issues</div></div>
+  </div>`;
+
+  // Filter bar
+  const filterHtml = `<div class="pub-filter" id="pub-filter">
+    ${['all','progress','issue','delivery','inspection','meeting','milestone'].map(t=>
+      `<button class="pub-filter-btn${t===activeFilter?' active':''}" data-filter="${t}" onclick="setFilter('${t}')">${t==='all'?'All Updates':(SL_TYPES[t].icon+' '+SL_TYPES[t].label)}</button>`
+    ).join('')}
+  </div>`;
+
+  document.getElementById('pub-content').innerHTML = statsHtml + filterHtml + `<div id="pub-timeline"></div>`;
+  renderTimeline();
+}
+
+function renderTimeline(){
+  const tl = document.getElementById('pub-timeline');
+  const filtered = activeFilter==='all' ? allUpdates : allUpdates.filter(u=>u.updateType===activeFilter);
+  if(!filtered.length){
+    tl.innerHTML = `<div class="pub-empty">
+      <svg width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div style="margin-top:8px">No updates in this category</div>
+    </div>`;
+    return;
+  }
+
+  // Group by date
+  const groups = {};
+  filtered.forEach(u=>{
+    const key = (u.createdAt||'').substring(0,10)||'Unknown';
+    if(!groups[key]) groups[key]=[];
+    groups[key].push(u);
+  });
+
+  let html = '<div class="pub-timeline">';
+  Object.entries(groups).forEach(([date, updates])=>{
+    html += `<div class="pub-date-group">
+      <div class="pub-date-label">${fmtDate(date)}</div>
+      ${updates.map(u=>renderCard(u)).join('')}
+    </div>`;
+  });
+  html += '</div>';
+  tl.innerHTML = html;
+}
+
+function renderCard(u){
+  const t = SL_TYPES[u.updateType]||SL_TYPES.progress;
+  let photos=[];
+  try{ photos=JSON.parse(u.photos_json||'[]'); }catch{}
+  return `<div class="pub-card type-${u.updateType}">
+    <div class="pub-card-header">
+      <span class="pub-type-badge ${t.badge}">${t.icon} ${t.label}</span>
+      <div style="flex:1">
+        <div class="pub-card-title">${esc(u.title)}</div>
+        <div class="pub-card-meta">
+          <span>${esc(u.postedBy)}</span>
+          <span>·</span>
+          <span>${fmtTime(u.createdAt)}</span>
+          ${u.roomArea?`<span class="pub-area-tag">📍 ${esc(u.roomArea)}</span>`:''}
+        </div>
+      </div>
+    </div>
+    ${u.description?`<div class="pub-card-desc">${esc(u.description)}</div>`:''}
+    ${photos.length?`<div class="pub-photos">${photos.map(p=>`<img class="pub-photo" src="${esc(p.url||p)}" alt="${esc(p.caption||'')}" onclick="openLightbox('${esc(p.url||p)}')">`).join('')}</div>`:''}
+  </div>`;
+}
+
+function setFilter(f){
+  activeFilter = f;
+  document.querySelectorAll('.pub-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+  renderTimeline();
+}
+
+function openLightbox(url){
+  document.getElementById('lightbox-img').src = url;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox(){
+  document.getElementById('lightbox').classList.remove('open');
+  document.getElementById('lightbox-img').src='';
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeLightbox(); });
+
+function showError(title, msg){
+  document.getElementById('pub-content').innerHTML = `<div class="pub-error">
+    <div class="err-title">🔒 ${title}</div>
+    <div>${msg}</div>
+    <div style="margin-top:20px;font-size:11px;opacity:.6">If you believe this is an error, contact A.G.R Automation.</div>
+  </div>`;
+}
+
+init();
+</script>
+</body>
+</html>
