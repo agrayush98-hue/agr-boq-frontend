@@ -521,6 +521,42 @@
     .pl-item{flex-wrap:wrap;}
     .pl-status-btns{width:100%;}
   }
+
+  /* ── Change Orders ── */
+  .co-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:18px;}
+  .co-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;text-align:center;}
+  .co-summary-val{font-size:22px;font-weight:800;line-height:1.1;}
+  .co-summary-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-top:4px;}
+  .co-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:12px;transition:border-color .15s;}
+  .co-card:hover{border-color:rgba(59,130,246,.35);}
+  .co-card-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;}
+  .co-number{font-size:11px;font-weight:800;font-family:monospace;background:var(--surface2);border:1px solid var(--border);padding:3px 8px;border-radius:5px;color:var(--muted);flex-shrink:0;}
+  .co-title{font-size:15px;font-weight:700;flex:1;}
+  .co-type{display:inline-flex;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+  .co-status{display:inline-flex;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+  .co-diff{font-size:16px;font-weight:800;margin-left:auto;}
+  .co-diff.positive{color:#22c55e;} .co-diff.negative{color:#ef4444;} .co-diff.zero{color:var(--muted);}
+  .co-meta{font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+  .co-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .co-pending-banner{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);border-radius:9px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+  .co-pending-banner:hover{opacity:.85;}
+  .co-drawer-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:300;justify-content:flex-end;}
+  .co-drawer-bg.open{display:flex;}
+  .co-drawer{background:var(--surface);border-left:1px solid var(--border);width:100%;max-width:580px;height:100vh;overflow-y:auto;display:flex;flex-direction:column;animation:slideInRight .2s ease;}
+  .co-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:16px;overflow-y:auto;}
+  .co-modal-overlay.open{display:flex;}
+  .co-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:620px;max-height:92vh;overflow-y:auto;margin:auto;}
+  .co-items-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+  .co-items-table th{background:var(--surface2);padding:7px 10px;text-align:left;font-weight:600;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);}
+  .co-items-table td{padding:8px 10px;border-bottom:1px solid rgba(51,65,85,.5);vertical-align:middle;}
+  .co-items-table tr:last-child td{border-bottom:none;}
+  .co-action-add{color:#22c55e;font-weight:700;font-size:10px;background:rgba(34,197,94,.1);padding:2px 7px;border-radius:4px;}
+  .co-action-remove{color:#ef4444;font-weight:700;font-size:10px;background:rgba(239,68,68,.1);padding:2px 7px;border-radius:4px;}
+  .co-action-modify{color:#f97316;font-weight:700;font-size:10px;background:rgba(249,115,22,.1);padding:2px 7px;border-radius:4px;}
+  .co-history-line{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);}
+  .co-history-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+  .co-reject-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;align-items:center;justify-content:center;padding:16px;}
+  .co-reject-modal.open{display:flex;}
 </style>
 </head>
 <body>
@@ -686,6 +722,81 @@
   <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   Report Issue
 </button>
+
+<!-- Change Order: New / Edit Modal -->
+<div class="co-modal-overlay" id="co-modal-overlay" onclick="if(event.target===this)closeCOModal()">
+  <div class="co-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <span id="co-modal-title" style="font-size:17px;font-weight:700;">New Change Order</span>
+      <button onclick="closeCOModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px;line-height:1;">×</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+      <div style="grid-column:1/-1;">
+        <label class="form-label">Title *</label>
+        <input id="co-title" class="form-control" placeholder="Brief title of the change…">
+      </div>
+      <div>
+        <label class="form-label">Request Type</label>
+        <select id="co-type" class="form-control" onchange="renderCOItemsSection()">
+          <option value="addition">➕ Addition — New items</option>
+          <option value="removal">➖ Removal — Remove items</option>
+          <option value="modification">✏️ Modification — Change qty/spec</option>
+          <option value="scope_change">🔄 Scope Change — Major change</option>
+        </select>
+      </div>
+      <div>
+        <label class="form-label">Original BOQ</label>
+        <select id="co-boq-select" class="form-control">
+          <option value="">Loading BOQs…</option>
+        </select>
+      </div>
+      <div style="grid-column:1/-1;">
+        <label class="form-label">Description</label>
+        <textarea id="co-desc" class="form-control" rows="2" style="resize:vertical;" placeholder="Describe why this change is needed…"></textarea>
+      </div>
+    </div>
+
+    <!-- Dynamic items section -->
+    <div id="co-items-section">
+      <!-- Rendered by renderCOItemsSection() -->
+    </div>
+
+    <!-- Total difference -->
+    <div style="background:var(--surface2);border-radius:8px;padding:14px;margin:14px 0;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:13px;font-weight:600;">Total Value Change</span>
+      <span id="co-total-display" style="font-size:18px;font-weight:800;">₹0</span>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn btn-ghost" onclick="closeCOModal()">Cancel</button>
+      <button class="btn btn-primary" id="co-submit-btn" onclick="submitChangeOrder()" style="background:#eab308;color:#000;">Submit for Approval</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Order: Detail Drawer -->
+<div class="co-drawer-bg" id="co-drawer-bg" onclick="if(event.target===this)closeCODrawer()">
+  <div class="co-drawer" id="co-drawer"></div>
+</div>
+
+<!-- Change Order: Reject Modal -->
+<div class="co-reject-modal" id="co-reject-modal" onclick="if(event.target===this)closeCORejectModal()">
+  <div class="co-modal" style="max-width:440px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+      <span style="font-size:16px;font-weight:700;">Reject Change Order</span>
+      <button onclick="closeCORejectModal()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px;">×</button>
+    </div>
+    <div>
+      <label class="form-label">Reason for Rejection *</label>
+      <textarea id="co-reject-reason" class="form-control" rows="4" style="resize:vertical;" placeholder="Explain why this change order is being rejected…"></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px;">
+      <button class="btn btn-ghost" onclick="closeCORejectModal()">Cancel</button>
+      <button class="btn btn-primary" id="co-reject-btn" onclick="submitCOReject()" style="background:#ef4444;">Reject</button>
+    </div>
+  </div>
+</div>
 
 <!-- Punch List: Add Item Modal -->
 <div class="pl-modal-overlay" id="pl-additem-overlay" onclick="if(event.target===this)closePunchItemModal()">
@@ -1042,6 +1153,11 @@ function renderPage(){
         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         Punch List
       </button>
+      <button class="tab-btn" onclick="showTab('changeorders',this)" id="co-tab-btn">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Change Orders
+        <span class="tab-count" id="co-tab-count" style="background:rgba(234,179,8,.2);color:#facc15;">0</span>
+      </button>
     </div>
 
     <!-- Critical issues banner (shown on all tabs when critical issues open) -->
@@ -1150,6 +1266,12 @@ function renderPage(){
 
     <!-- BOQ Tab -->
     <div class="tab-panel" id="tab-boq">
+      <!-- Pending change orders banner -->
+      <div class="co-pending-banner" id="co-boq-pending-banner" style="display:none;" onclick="showTab('changeorders',document.getElementById('co-tab-btn'))">
+        <svg width="15" height="15" fill="none" stroke="#facc15" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span id="co-boq-pending-text" style="flex:1;font-size:13px;font-weight:600;color:#fde68a;">Pending change orders</span>
+        <span style="color:#facc15;font-size:14px;">→</span>
+      </div>
       <div id="boq-ui" style="padding:4px 0"></div>
     </div>
 
@@ -1186,6 +1308,11 @@ function renderPage(){
     <!-- Punch List Tab -->
     <div class="tab-panel" id="tab-punchlist">
       <div id="punch-ui"></div>
+    </div>
+
+    <!-- Change Orders Tab -->
+    <div class="tab-panel" id="tab-changeorders">
+      <div id="co-ui"></div>
     </div>
   `;
 
@@ -1225,7 +1352,8 @@ function showTab(name, btn){
   if(name==='sitelog'   && !window._slLoaded)      loadSiteLogTab();
   if(name==='materials' && !window._matLoaded)     loadMaterialsTab();
   if(name==='issues'    && !window._issLoaded)     loadIssuesTab();
-  if(name==='punchlist' && !window._plLoaded)      loadPunchListTab();
+  if(name==='punchlist'    && !window._plLoaded)      loadPunchListTab();
+  if(name==='changeorders' && !window._coLoaded)     loadChangeOrdersTab();
   // Show/hide Post Update FAB
   const fab=document.getElementById('sl-fab');
   if(fab) fab.classList.toggle('visible', name==='sitelog');
@@ -2581,6 +2709,15 @@ async function init(){
     project=pData;
     window._users=uData.users||[];
     renderPage();
+    // Eagerly load change orders count for BOQ banner (background, non-blocking)
+    fetch(`${API}/api/projects/${projectId}/change-orders`, { headers: ah() })
+      .then(r => r.json()).then(d => {
+        if (d.summary) {
+          window._coSummary = d.summary;
+          window._coList    = d.changeOrders || [];
+          updateCOTabBadge();
+        }
+      }).catch(() => {});
   }catch(e){
     document.getElementById('main-content').innerHTML=`<div style="padding:40px;text-align:center;color:#f87171">${e.message||'Failed to load project'}</div>`;
   }
@@ -3842,6 +3979,598 @@ function copyShareLink(){
     document.getElementById('sl-share-copied').style.display='block';
     setTimeout(()=>{ document.getElementById('sl-share-copied').style.display='none'; }, 3000);
   }).catch(()=>{ document.execCommand('copy'); });
+}
+
+// ── Change Orders ─────────────────────────────────────────────────────────────
+
+const CO_TYPES = {
+  addition:     { label: 'Addition',      color: '#22c55e' },
+  removal:      { label: 'Removal',       color: '#ef4444' },
+  modification: { label: 'Modification',  color: '#f97316' },
+  scope_change: { label: 'Scope Change',  color: '#8b5cf6' }
+};
+const CO_STATUSES = {
+  pending:     { label: 'Pending Approval', color: '#eab308' },
+  approved:    { label: 'Approved',         color: '#22c55e' },
+  rejected:    { label: 'Rejected',         color: '#ef4444' },
+  implemented: { label: 'Implemented',      color: '#3b82f6' }
+};
+
+window._coLoaded       = false;
+window._coList         = [];
+window._coSummary      = {};
+window._coEditId       = null;
+window._coRejectId     = null;
+window._coNewItems     = [];   // items being built in new-CO modal
+window._coBoqItems     = [];   // items from selected original BOQ (for removal/mod selects)
+
+async function loadChangeOrdersTab() {
+  window._coLoaded = true;
+  const el = document.getElementById('co-ui');
+  if (el) el.innerHTML = '<p style="color:var(--muted);padding:40px;text-align:center;">Loading…</p>';
+  try {
+    const r = await fetch(`${API}/api/projects/${projectId}/change-orders`, { headers: ah() });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    window._coList    = d.changeOrders || [];
+    window._coSummary = d.summary || {};
+    updateCOTabBadge();
+    renderCOUI();
+  } catch(e) {
+    const el2 = document.getElementById('co-ui');
+    if (el2) el2.innerHTML = `<p style="color:var(--red);padding:40px;text-align:center;">Error: ${e.message}</p>`;
+  }
+}
+
+function updateCOTabBadge() {
+  const cnt = document.getElementById('co-tab-count');
+  if (cnt) {
+    const pending = window._coSummary.pending || 0;
+    cnt.textContent = pending;
+    cnt.style.display = pending > 0 ? '' : 'none';
+  }
+  // BOQ tab pending banner
+  updateCOPendingBanner(window._coSummary.pending || 0);
+}
+
+function updateCOPendingBanner(count) {
+  const el = document.getElementById('co-boq-pending-banner');
+  if (!el) return;
+  if (count > 0) {
+    el.style.display = 'flex';
+    el.querySelector('#co-boq-pending-text').textContent =
+      `⚠️ ${count} pending change order${count > 1 ? 's' : ''} — review before proceeding`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function renderCOUI() {
+  const el = document.getElementById('co-ui');
+  if (!el) return;
+  const s = window._coSummary;
+  const orders = window._coList;
+  const fmtDiff = (v) => {
+    if (!v) return '₹0';
+    const sign = v > 0 ? '+' : '';
+    return sign + '₹' + Math.abs(v).toLocaleString('en-IN', {maximumFractionDigits: 0});
+  };
+
+  el.innerHTML = `
+  <!-- Summary bar -->
+  <div class="co-summary">
+    <div class="co-summary-card"><div class="co-summary-val">${s.total||0}</div><div class="co-summary-lbl">Total</div></div>
+    <div class="co-summary-card"><div class="co-summary-val" style="color:#eab308">${s.pending||0}</div><div class="co-summary-lbl">Pending</div></div>
+    <div class="co-summary-card"><div class="co-summary-val" style="color:#22c55e">${s.approved||0}</div><div class="co-summary-lbl">Approved</div></div>
+    <div class="co-summary-card"><div class="co-summary-val" style="color:#ef4444">${s.rejected||0}</div><div class="co-summary-lbl">Rejected</div></div>
+    <div class="co-summary-card">
+      <div class="co-summary-val ${(s.totalDifference||0)>=0?'positive':'negative'}" style="color:${(s.totalDifference||0)>=0?'#22c55e':'#ef4444'}">
+        ${fmtDiff(s.totalDifference)}
+      </div>
+      <div class="co-summary-lbl">Net Change</div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+    <button class="btn btn-primary" style="background:#eab308;color:#000;" onclick="openCOModal()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Change Order
+    </button>
+  </div>
+
+  ${orders.length === 0
+    ? `<div style="text-align:center;color:var(--muted);padding:48px 0;font-size:14px;">No change orders yet. Create one when the client requests additions or modifications.</div>`
+    : orders.map(renderCOCard).join('')
+  }
+
+  <!-- History timeline (approved only) -->
+  ${orders.filter(o => o.status === 'approved' || o.status === 'implemented').length > 0 ? `
+  <div style="margin-top:28px;">
+    <div style="font-size:14px;font-weight:700;margin-bottom:14px;">Change History</div>
+    ${orders.filter(o => o.status === 'approved' || o.status === 'implemented').map(o => {
+      const typ = CO_TYPES[o.requestType] || {label: o.requestType, color:'#64748b'};
+      const diff = o.totalDifference || 0;
+      return `<div class="co-history-line">
+        <div class="co-history-dot" style="background:${typ.color}"></div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;">${esc(o.changeNumber)} — ${esc(o.title)}</div>
+          <div style="font-size:11px;color:var(--muted);">${typ.label} · Approved ${o.approvedAt ? new Date(o.approvedAt).toLocaleDateString('en-IN') : ''} by ${esc(o.approvedBy||'')}</div>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:${diff>=0?'#22c55e':'#ef4444'}">${fmtDiff(diff)}</div>
+      </div>`;
+    }).join('')}
+  </div>` : ''}
+  `;
+}
+
+function renderCOCard(co) {
+  const typ  = CO_TYPES[co.requestType]  || { label: co.requestType,  color: '#64748b' };
+  const stat = CO_STATUSES[co.status]    || { label: co.status,        color: '#64748b' };
+  const diff = co.totalDifference || 0;
+  const diffClass = diff > 0 ? 'positive' : diff < 0 ? 'negative' : 'zero';
+  const diffStr = diff === 0 ? '₹0' : (diff > 0 ? '+' : '') + '₹' + Math.abs(diff).toLocaleString('en-IN', {maximumFractionDigits:0});
+  const isPending = co.status === 'pending';
+  return `
+  <div class="co-card" style="border-left:3px solid ${typ.color};">
+    <div class="co-card-header">
+      <span class="co-number">${esc(co.changeNumber)}</span>
+      <div style="flex:1;">
+        <div class="co-title">${esc(co.title)}</div>
+        ${co.description ? `<div style="font-size:12px;color:var(--muted);margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">${esc(co.description)}</div>` : ''}
+      </div>
+      <div class="co-diff ${diffClass}">${diffStr}</div>
+    </div>
+    <div class="co-meta">
+      <span class="co-type" style="background:${typ.color}22;color:${typ.color};">${typ.label}</span>
+      <span class="co-status" style="background:${stat.color}22;color:${stat.color};">${stat.label}</span>
+      <span>By ${esc(co.requestedBy)}</span>
+      <span>${new Date(co.createdAt).toLocaleDateString('en-IN', {dateStyle:'medium'})}</span>
+    </div>
+    ${co.rejectionReason ? `<div style="font-size:12px;color:#f87171;background:rgba(239,68,68,.08);border-radius:6px;padding:8px 10px;margin-bottom:8px;">❌ Rejected: ${esc(co.rejectionReason)}</div>` : ''}
+    ${co.newBoqId ? `<div style="font-size:12px;color:#22c55e;margin-bottom:8px;">✅ New BOQ v${co.newBoqVersion||''} created — <a href="#" onclick="event.preventDefault();showTab('boq',document.querySelector('[onclick*=showTab]'));window._boqLoaded=false;loadBOQTab();" style="color:#3b82f6;">View BOQ tab</a></div>` : ''}
+    <div class="co-actions">
+      <button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="openCODrawer(${co.id})">View Details</button>
+      ${isPending ? `<button class="btn btn-primary" style="font-size:12px;padding:5px 12px;background:#22c55e;" onclick="approveCO(${co.id})">✅ Approve</button>` : ''}
+      ${isPending ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;color:#ef4444;border-color:rgba(239,68,68,.4);" onclick="openCORejectModal(${co.id})">❌ Reject</button>` : ''}
+      ${isPending ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="openCOModal(${co.id})">✏ Edit</button>` : ''}
+      ${isPending ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;color:var(--red);" onclick="deleteCO(${co.id})">🗑</button>` : ''}
+    </div>
+  </div>`;
+}
+
+async function openCODrawer(id) {
+  document.getElementById('co-drawer-bg').classList.add('open');
+  document.getElementById('co-drawer').innerHTML = '<p style="color:var(--muted);padding:32px;text-align:center;">Loading…</p>';
+  try {
+    const r = await fetch(`${API}/api/change-orders/${id}`, { headers: ah() });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    renderCODrawer(d.changeOrder, d.origBoq, d.newBoq);
+  } catch(e) {
+    document.getElementById('co-drawer').innerHTML = `<p style="color:var(--red);padding:32px;">Error: ${e.message}</p>`;
+  }
+}
+
+function closeCODrawer() {
+  document.getElementById('co-drawer-bg').classList.remove('open');
+}
+
+function renderCODrawer(co, origBoq, newBoq) {
+  const typ  = CO_TYPES[co.requestType]  || { label: co.requestType,  color: '#64748b' };
+  const stat = CO_STATUSES[co.status]    || { label: co.status,        color: '#64748b' };
+  const diff = co.totalDifference || 0;
+  const diffStr = (diff > 0 ? '+' : '') + '₹' + Math.abs(diff).toLocaleString('en-IN', {maximumFractionDigits: 0});
+  const diffColor = diff > 0 ? '#22c55e' : diff < 0 ? '#ef4444' : 'var(--muted)';
+  const isPending = co.status === 'pending';
+
+  let items = [];
+  try { items = JSON.parse(co.items_json || '[]'); } catch {}
+
+  const origTotal = origBoq ? (() => { try { return JSON.parse(origBoq.totals_json||'{}').total || 0; } catch { return 0; } })() : 0;
+  const newTotal  = newBoq  ? (() => { try { return JSON.parse(newBoq.totals_json ||'{}').total || 0; } catch { return 0; } })() : 0;
+
+  const itemsTable = items.length > 0 ? `
+  <table class="co-items-table">
+    <thead><tr>
+      <th>Action</th><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th>
+    </tr></thead>
+    <tbody>
+      ${items.map(i => {
+        const amt = (Number(i.quantity||0) * Number(i.unitRate||0));
+        const isRemoval = i.action === 'remove';
+        return `<tr style="${isRemoval?'opacity:.65':''}">
+          <td><span class="co-action-${i.action||'add'}">${(i.action||'add').toUpperCase()}</span></td>
+          <td style="font-weight:500;">${esc(i.itemName||'')}</td>
+          <td>${i.quantity||'—'} ${i.unit||''}</td>
+          <td>${i.unitRate ? '₹'+Number(i.unitRate).toLocaleString('en-IN') : '—'}</td>
+          <td style="font-weight:600;color:${isRemoval?'#ef4444':'#22c55e'}">
+            ${amt ? (isRemoval?'-':'+'+'₹'+amt.toLocaleString('en-IN',{maximumFractionDigits:0})) : '—'}
+          </td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>` : '<p style="color:var(--muted);font-size:13px;">No item details recorded.</p>';
+
+  document.getElementById('co-drawer').innerHTML = `
+  <div style="padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;">
+    <div style="flex:1;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <span class="co-number">${esc(co.changeNumber)}</span>
+        <span class="co-type" style="background:${typ.color}22;color:${typ.color};">${typ.label}</span>
+        <span class="co-status" style="background:${stat.color}22;color:${stat.color};">${stat.label}</span>
+      </div>
+      <div style="font-size:17px;font-weight:700;">${esc(co.title)}</div>
+      ${co.description ? `<div style="font-size:13px;color:var(--muted);margin-top:6px;">${esc(co.description)}</div>` : ''}
+    </div>
+    <button onclick="closeCODrawer()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px;padding:0;">×</button>
+  </div>
+
+  <div style="padding:20px;overflow-y:auto;flex:1;">
+    <!-- Value change -->
+    <div style="background:var(--surface2);border-radius:9px;padding:14px;margin-bottom:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Original BOQ</div>
+        <div style="font-size:15px;font-weight:700;">₹${origTotal.toLocaleString('en-IN',{maximumFractionDigits:0})}</div>
+        ${origBoq ? `<div style="font-size:10px;color:var(--muted);">v${origBoq.version}</div>` : ''}
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Change</div>
+        <div style="font-size:18px;font-weight:800;color:${diffColor};">${diff>=0?'+':''}${diffStr}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${newBoq ? 'New BOQ' : 'Expected'}</div>
+        <div style="font-size:15px;font-weight:700;color:${newBoq?'#22c55e':'var(--muted)'}">
+          ₹${(origTotal + diff).toLocaleString('en-IN',{maximumFractionDigits:0})}
+        </div>
+        ${newBoq ? `<div style="font-size:10px;color:#22c55e;">v${newBoq.version} created</div>` : ''}
+      </div>
+    </div>
+
+    <!-- Meta -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;font-size:12px;">
+      ${[
+        ['Requested By', esc(co.requestedBy)],
+        ['Submitted', new Date(co.createdAt).toLocaleDateString('en-IN',{dateStyle:'medium'})],
+        co.approvedBy ? ['Reviewed By', esc(co.approvedBy)] : null,
+        co.approvedAt ? ['Review Date', new Date(co.approvedAt).toLocaleDateString('en-IN',{dateStyle:'medium'})] : null,
+        co.clientApproved ? ['Client Sign-Off', esc(co.clientApproved)] : null,
+      ].filter(Boolean).map(([k,v]) => `
+      <div style="background:var(--surface2);border-radius:7px;padding:10px;">
+        <div style="color:var(--muted);font-size:10px;margin-bottom:3px;">${k}</div>
+        <div style="font-weight:600;">${v}</div>
+      </div>`).join('')}
+    </div>
+
+    ${co.rejectionReason ? `<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:#fca5a5;">❌ <strong>Rejection Reason:</strong> ${esc(co.rejectionReason)}</div>` : ''}
+
+    <!-- Items -->
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Change Items</div>
+    ${itemsTable}
+
+    <!-- Actions -->
+    ${isPending ? `
+    <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+      <button class="btn btn-primary" style="flex:1;background:#22c55e;" onclick="closeCODrawer();approveCO(${co.id})">✅ Approve</button>
+      <button class="btn btn-ghost"   style="flex:1;color:#ef4444;border-color:rgba(239,68,68,.4);" onclick="closeCODrawer();openCORejectModal(${co.id})">❌ Reject</button>
+      <button class="btn btn-ghost"   style="flex:1;" onclick="closeCODrawer();openCOModal(${co.id})">✏ Edit</button>
+    </div>` : ''}
+    ${newBoq ? `<div style="margin-top:16px;font-size:13px;">✅ <strong>New BOQ Version ${newBoq.version}</strong> was created from this change order.</div>` : ''}
+  </div>`;
+}
+
+async function openCOModal(editId) {
+  window._coEditId   = editId || null;
+  window._coNewItems = [];
+  window._coBoqItems = [];
+
+  // Load BOQ list for selector
+  const boqSel = document.getElementById('co-boq-select');
+  if (boqSel) {
+    boqSel.innerHTML = '<option value="">Loading…</option>';
+    try {
+      const r = await fetch(`${API}/api/projects/${projectId}/boqs`, { headers: ah() });
+      if (r.ok) {
+        const d = await r.json();
+        const boqs = (d.boqs || []).filter(b => b.status === 'approved');
+        boqSel.innerHTML = boqs.length > 0
+          ? boqs.map(b => `<option value="${b.id}">BOQ v${b.version} — ${b.status} — ₹${(() => { try { return JSON.parse(b.totals_json||'{}').total?.toLocaleString('en-IN',{maximumFractionDigits:0})||'?'; } catch { return '?'; } })()}</option>`).join('')
+          : '<option value="">No approved BOQs found</option>';
+        // Store latest approved BOQ items for removal/modify select
+        if (boqs.length > 0) {
+          try { window._coBoqItems = JSON.parse(boqs[0].items_json || '[]'); } catch {}
+        }
+      }
+    } catch(e) {}
+  }
+
+  // If editing, load existing data
+  document.getElementById('co-title').value = '';
+  document.getElementById('co-desc').value  = '';
+  document.getElementById('co-type').value  = 'addition';
+
+  if (window._coEditId) {
+    try {
+      const r = await fetch(`${API}/api/change-orders/${window._coEditId}`, { headers: ah() });
+      if (r.ok) {
+        const d = await r.json();
+        const co = d.changeOrder;
+        document.getElementById('co-title').value = co.title || '';
+        document.getElementById('co-desc').value  = co.description || '';
+        document.getElementById('co-type').value  = co.requestType || 'addition';
+        if (boqSel && co.originalBoqId) boqSel.value = co.originalBoqId;
+        try { window._coNewItems = JSON.parse(co.items_json || '[]'); } catch {}
+      }
+    } catch(e) {}
+  }
+
+  document.getElementById('co-modal-title').textContent = window._coEditId ? 'Edit Change Order' : 'New Change Order';
+  document.getElementById('co-submit-btn').textContent  = window._coEditId ? 'Save Changes'       : 'Submit for Approval';
+  document.getElementById('co-modal-overlay').classList.add('open');
+  renderCOItemsSection();
+  calcCOTotal();
+}
+
+function closeCOModal() {
+  document.getElementById('co-modal-overlay').classList.remove('open');
+  window._coEditId   = null;
+  window._coNewItems = [];
+}
+
+function renderCOItemsSection() {
+  const type = document.getElementById('co-type')?.value || 'addition';
+  const el   = document.getElementById('co-items-section');
+  if (!el) return;
+
+  const addedHTML = window._coNewItems.map((item, idx) => {
+    const actionColor = item.action === 'add' ? '#22c55e' : item.action === 'remove' ? '#ef4444' : '#f97316';
+    const rowAmt = item.action !== 'remove' ? (Number(item.quantity||0) * Number(item.unitRate||0)) : 0;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:10px;font-weight:700;color:${actionColor};background:${actionColor}22;padding:2px 7px;border-radius:4px;flex-shrink:0;">${(item.action||'add').toUpperCase()}</span>
+      <span style="flex:1;font-size:13px;">${esc(item.itemName||'')}</span>
+      <span style="font-size:12px;color:var(--muted);">${item.quantity||''} ${item.unit||''}</span>
+      <span style="font-size:12px;font-weight:600;">${rowAmt ? '₹'+rowAmt.toLocaleString('en-IN',{maximumFractionDigits:0}) : ''}</span>
+      <button onclick="removeCOItem(${idx})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;flex-shrink:0;" title="Remove">×</button>
+    </div>`;
+  }).join('');
+
+  if (type === 'addition' || type === 'scope_change') {
+    el.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Items to Add</div>
+      <div id="co-items-list">${addedHTML || '<div style="color:var(--muted);font-size:12px;padding:6px 0;">No items added yet.</div>'}</div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;margin-top:10px;align-items:end;">
+        <div><label class="form-label" style="font-size:10px;">Item Name</label>
+          <input id="co-new-name" class="form-control" placeholder="Product / service name" style="font-size:12px;padding:6px 10px;"></div>
+        <div><label class="form-label" style="font-size:10px;">Qty</label>
+          <input id="co-new-qty"  class="form-control" type="number" placeholder="1" min="0" style="font-size:12px;padding:6px 8px;" oninput="calcCOTotal()"></div>
+        <div><label class="form-label" style="font-size:10px;">Rate (₹)</label>
+          <input id="co-new-rate" class="form-control" type="number" placeholder="0" min="0" style="font-size:12px;padding:6px 8px;" oninput="calcCOTotal()"></div>
+        <div><label class="form-label" style="font-size:10px;">Unit</label>
+          <input id="co-new-unit" class="form-control" placeholder="nos" style="font-size:12px;padding:6px 8px;"></div>
+        <div style="padding-bottom:1px;"><button class="btn btn-primary" onclick="addCOItem('add')" style="padding:6px 12px;font-size:12px;">Add</button></div>
+      </div>
+    </div>`;
+  } else if (type === 'removal') {
+    const boqOpts = window._coBoqItems.map((i, idx) =>
+      `<option value="${idx}">${esc(i.itemName)} (${i.quantity} ${i.unit||''})</option>`
+    ).join('');
+    el.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Items to Remove</div>
+      <div id="co-items-list">${addedHTML || '<div style="color:var(--muted);font-size:12px;padding:6px 0;">No items marked for removal yet.</div>'}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:flex-end;">
+        <div style="flex:1;"><label class="form-label" style="font-size:10px;">Select Item from BOQ</label>
+          <select id="co-remove-select" class="form-control" style="font-size:12px;padding:6px 10px;">
+            <option value="">— Select item to remove —</option>${boqOpts}
+          </select></div>
+        <button class="btn btn-primary" onclick="addCOItemRemoval()" style="padding:6px 14px;font-size:12px;background:#ef4444;flex-shrink:0;">Remove</button>
+      </div>
+    </div>`;
+  } else if (type === 'modification') {
+    const boqOpts = window._coBoqItems.map((i, idx) =>
+      `<option value="${idx}" data-qty="${i.quantity}" data-rate="${i.unitRate||0}" data-unit="${i.unit||''}">${esc(i.itemName)}</option>`
+    ).join('');
+    el.innerHTML = `
+    <div style="margin-bottom:12px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Items to Modify</div>
+      <div id="co-items-list">${addedHTML || '<div style="color:var(--muted);font-size:12px;padding:6px 0;">No modifications added yet.</div>'}</div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;margin-top:10px;align-items:end;">
+        <div><label class="form-label" style="font-size:10px;">Select Item</label>
+          <select id="co-mod-select" class="form-control" style="font-size:12px;padding:6px 8px;" onchange="fillModValues(this)">
+            <option value="">— Pick item —</option>${boqOpts}
+          </select></div>
+        <div><label class="form-label" style="font-size:10px;">New Qty</label>
+          <input id="co-mod-qty"  class="form-control" type="number" placeholder="qty" min="0" style="font-size:12px;padding:6px 8px;" oninput="calcCOTotal()"></div>
+        <div><label class="form-label" style="font-size:10px;">New Rate (₹)</label>
+          <input id="co-mod-rate" class="form-control" type="number" placeholder="rate" min="0" style="font-size:12px;padding:6px 8px;" oninput="calcCOTotal()"></div>
+        <div style="padding-bottom:1px;"><button class="btn btn-primary" onclick="addCOItemModify()" style="padding:6px 12px;font-size:12px;">Modify</button></div>
+      </div>
+    </div>`;
+  }
+  calcCOTotal();
+}
+
+function fillModValues(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.value) return;
+  const qtyEl  = document.getElementById('co-mod-qty');
+  const rateEl = document.getElementById('co-mod-rate');
+  if (qtyEl)  qtyEl.value  = opt.dataset.qty  || '';
+  if (rateEl) rateEl.value = opt.dataset.rate || '';
+}
+
+function addCOItem(action) {
+  const name = (document.getElementById('co-new-name')?.value||'').trim();
+  const qty  = Number(document.getElementById('co-new-qty')?.value||0);
+  const rate = Number(document.getElementById('co-new-rate')?.value||0);
+  const unit = (document.getElementById('co-new-unit')?.value||'nos').trim();
+  if (!name)       { toast('Item name is required','error'); return; }
+  if (qty <= 0)    { toast('Quantity must be > 0','error'); return; }
+  window._coNewItems.push({ action, itemName: name, quantity: qty, unitRate: rate, unit });
+  // Clear inputs
+  ['co-new-name','co-new-qty','co-new-rate','co-new-unit'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  renderCOItemsSection();
+}
+
+function addCOItemRemoval() {
+  const sel = document.getElementById('co-remove-select');
+  if (!sel || !sel.value) { toast('Select an item to remove','error'); return; }
+  const item = window._coBoqItems[Number(sel.value)];
+  if (!item) return;
+  if (window._coNewItems.some(i => i.itemName === item.itemName && i.action === 'remove')) {
+    toast('Item already marked for removal','error'); return;
+  }
+  window._coNewItems.push({ action: 'remove', itemName: item.itemName, quantity: item.quantity, unitRate: item.unitRate||0, unit: item.unit||'' });
+  renderCOItemsSection();
+}
+
+function addCOItemModify() {
+  const sel  = document.getElementById('co-mod-select');
+  const qty  = Number(document.getElementById('co-mod-qty')?.value||0);
+  const rate = Number(document.getElementById('co-mod-rate')?.value||0);
+  if (!sel || !sel.value) { toast('Select an item to modify','error'); return; }
+  const item = window._coBoqItems[Number(sel.value)];
+  if (!item) return;
+  const oldAmt = Number(item.quantity||0) * Number(item.unitRate||0);
+  const newAmt = qty * rate;
+  window._coNewItems.push({ action: 'modify', itemName: item.itemName,
+    quantity: qty||item.quantity, unitRate: rate||item.unitRate||0, unit: item.unit||'',
+    _oldAmt: oldAmt, _newAmt: newAmt });
+  renderCOItemsSection();
+}
+
+function removeCOItem(idx) {
+  window._coNewItems.splice(idx, 1);
+  renderCOItemsSection();
+}
+
+function calcCOTotal() {
+  let total = 0;
+  for (const item of window._coNewItems) {
+    const amt = Number(item.quantity||0) * Number(item.unitRate||0);
+    if (item.action === 'add')    total += amt;
+    if (item.action === 'remove') total -= amt;
+    if (item.action === 'modify') total += (Number(item._newAmt||0) - Number(item._oldAmt||0));
+  }
+  // Also count in-progress input
+  const qty  = Number(document.getElementById('co-new-qty')?.value  || document.getElementById('co-mod-qty')?.value  || 0);
+  const rate = Number(document.getElementById('co-new-rate')?.value || document.getElementById('co-mod-rate')?.value || 0);
+  const preview = qty * rate;
+  const disp = document.getElementById('co-total-display');
+  if (disp) {
+    const t = total;
+    disp.textContent = (t > 0 ? '+' : '') + '₹' + Math.abs(t).toLocaleString('en-IN', {maximumFractionDigits: 0});
+    disp.style.color = t > 0 ? '#22c55e' : t < 0 ? '#ef4444' : 'var(--muted)';
+  }
+}
+
+async function submitChangeOrder() {
+  const title   = document.getElementById('co-title').value.trim();
+  const type    = document.getElementById('co-type').value;
+  const desc    = document.getElementById('co-desc').value.trim();
+  const boqId   = Number(document.getElementById('co-boq-select')?.value || 0);
+  if (!title)  { toast('Title is required','error'); return; }
+  if (!boqId)  { toast('Select the original BOQ','error'); return; }
+  if (window._coNewItems.length === 0) { toast('Add at least one change item','error'); return; }
+
+  let totalDiff = 0;
+  for (const item of window._coNewItems) {
+    const amt = Number(item.quantity||0) * Number(item.unitRate||0);
+    if (item.action === 'add')    totalDiff += amt;
+    if (item.action === 'remove') totalDiff -= amt;
+    if (item.action === 'modify') totalDiff += (Number(item._newAmt||0) - Number(item._oldAmt||0));
+  }
+
+  const btn = document.getElementById('co-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    const payload = { title, description: desc||null, requestType: type,
+                      originalBoqId: boqId, items_json: window._coNewItems, totalDifference: totalDiff };
+    let r;
+    if (window._coEditId) {
+      r = await fetch(`${API}/api/change-orders/${window._coEditId}`, { method:'PUT', headers:jh(), body:JSON.stringify(payload) });
+    } else {
+      r = await fetch(`${API}/api/projects/${projectId}/change-orders`, { method:'POST', headers:jh(), body:JSON.stringify(payload) });
+    }
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    closeCOModal();
+    toast(window._coEditId ? 'Change order updated' : `Change order ${d.changeNumber} submitted`, 'success');
+    window._coLoaded = false;
+    await loadChangeOrdersTab();
+  } catch(e) {
+    toast(e.message || 'Failed','error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = window._coEditId ? 'Save Changes' : 'Submit for Approval'; }
+  }
+}
+
+async function approveCO(id) {
+  const clientSig = prompt('Enter client name / approval reference (optional):') ?? undefined;
+  if (clientSig === null) return; // cancelled
+  try {
+    const r = await fetch(`${API}/api/change-orders/${id}/approve`, {
+      method: 'POST', headers: jh(),
+      body: JSON.stringify({ clientApproved: clientSig || null })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    toast(`✅ Approved — New BOQ v${d.newVersion} created`, 'success');
+    window._coLoaded  = false;
+    window._boqLoaded = false;
+    await loadChangeOrdersTab();
+  } catch(e) {
+    toast(e.message || 'Failed','error');
+  }
+}
+
+function openCORejectModal(id) {
+  window._coRejectId = id;
+  document.getElementById('co-reject-reason').value = '';
+  document.getElementById('co-reject-modal').classList.add('open');
+}
+
+function closeCORejectModal() {
+  document.getElementById('co-reject-modal').classList.remove('open');
+  window._coRejectId = null;
+}
+
+async function submitCOReject() {
+  const reason = document.getElementById('co-reject-reason').value.trim();
+  if (!reason) { toast('Rejection reason is required','error'); return; }
+  const btn = document.getElementById('co-reject-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Rejecting…'; }
+  try {
+    const r = await fetch(`${API}/api/change-orders/${window._coRejectId}/reject`, {
+      method: 'POST', headers: jh(), body: JSON.stringify({ reason })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    closeCORejectModal();
+    toast('Change order rejected', 'success');
+    window._coLoaded = false;
+    await loadChangeOrdersTab();
+  } catch(e) {
+    toast(e.message || 'Failed','error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Reject'; }
+  }
+}
+
+async function deleteCO(id) {
+  if (!confirm('Delete this change order? This cannot be undone.')) return;
+  try {
+    const r = await fetch(`${API}/api/change-orders/${id}`, { method:'DELETE', headers:ah() });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || 'Failed');
+    toast('Deleted','success');
+    window._coLoaded = false;
+    await loadChangeOrdersTab();
+  } catch(e) {
+    toast(e.message || 'Failed','error');
+  }
 }
 
 // ── Punch List / Final Handover Checklist ─────────────────────────────────────
