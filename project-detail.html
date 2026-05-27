@@ -2940,38 +2940,60 @@ function renderMaterialRow(m, editing=false){
   </tr>`;
 }
 
-// Track in-flight qty updates to debounce
-const _matQtyPending = {};
+// Track debounce timers and abort controllers per material row
+const _matQtyTimer   = {};   // id → setTimeout handle
+const _matQtyAbort   = {};   // id → AbortController
+const _matQtyQueued  = {};   // id → { field, value } latest snapshot to send
 
 async function matStep(id, field, delta){
   const m = window._materials.find(x=>x.id===id);
   if(!m) return;
   const newVal = Math.max(0, (m[field]||0) + delta);
   m[field] = newVal;
-  // Update UI immediately
+
+  // Immediate UI update
   const elMap = { orderedQty:`mat-ord-${id}`, deliveredQty:`mat-del-${id}`, installedQty:`mat-ins-${id}` };
   const el = document.getElementById(elMap[field]);
   if(el) el.textContent = newVal;
-  // Recalc status locally
+
+  // Local status recalc
   const newStatus = calcLocalStatus(m);
   m.status = newStatus;
   const badgeEl = document.getElementById(`mat-badge-${id}`);
   if(badgeEl) badgeEl.innerHTML = matStatusBadge(newStatus);
-  // Debounce API call
-  clearTimeout(_matQtyPending[id]);
-  _matQtyPending[id] = setTimeout(async ()=>{
+
+  // Accumulate all changed qty fields into a single pending payload
+  if(!_matQtyQueued[id]) _matQtyQueued[id] = {};
+  _matQtyQueued[id][field] = newVal;
+
+  // Cancel previous timer — reset the 1500ms window
+  clearTimeout(_matQtyTimer[id]);
+
+  // Cancel in-flight request for this row if one exists
+  if(_matQtyAbort[id]) { _matQtyAbort[id].abort(); _matQtyAbort[id] = null; }
+
+  _matQtyTimer[id] = setTimeout(async () => {
+    const payload = { ..._matQtyQueued[id] };  // snapshot
+    delete _matQtyQueued[id];                  // clear queue
+    const controller = new AbortController();
+    _matQtyAbort[id] = controller;
     try {
-      const r = await fetch(`${API}/api/materials/${id}`,{
-        method:'PUT', headers:jh(),
-        body:JSON.stringify({ [field]: newVal })
+      const r = await fetch(`${API}/api/materials/${id}`, {
+        method: 'PUT',
+        headers: jh(),
+        body: JSON.stringify(payload),
+        signal: controller.signal,
       });
+      _matQtyAbort[id] = null;
       const d = await r.json();
-      if(!r.ok) throw new Error(d.error);
+      if(!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
       if(d.status) { m.status = d.status; if(badgeEl) badgeEl.innerHTML = matStatusBadge(d.status); }
-      // Update summary quietly
       refreshSummaryOnly();
-    } catch(e){ toast(e.message||'Update failed','error'); }
-  }, 600);
+    } catch(e) {
+      if(e.name === 'AbortError') return;  // superseded by newer request — silent
+      toast(e.message || 'Update failed', 'error');
+    }
+  }, 1500);
 }
 
 function calcLocalStatus(m){
