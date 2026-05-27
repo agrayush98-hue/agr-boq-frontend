@@ -618,6 +618,14 @@ if (!getSession() && window.self === window.top) {
   location.href = 'index.html';
 }
 
+// Pre-fill from URL params (e.g. ?client=Name&contact=+91...&email=...)
+(function prefillFromURL() {
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('client'))  { const el = document.getElementById('c-name');    if (el) el.value = p.get('client'); }
+  if (p.get('contact')) { const el = document.getElementById('c-contact'); if (el) el.value = p.get('contact'); }
+  if (p.get('email'))   { const el = document.getElementById('c-email');   if (el) el.value = p.get('email'); }
+})();
+
 let generatedData = null;
 let quoteItems = [];
 let allClients = [];

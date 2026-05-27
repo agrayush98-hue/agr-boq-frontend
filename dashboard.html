@@ -459,9 +459,12 @@ async function init() {
   }).join('');
 }
 
+let _drawerQuoteNum = '';
+
 function openQuoteDrawer(i) {
   const q = window._dashQuotes[i];
   if (!q) return;
+  _drawerQuoteNum = q.quoteNumber;
   const client = typeof q.client === 'object' ? q.client : JSON.parse(q.client || '{}');
   const items = typeof q.items === 'string' ? JSON.parse(q.items || '[]') : (q.items || []);
   const date = new Date(q.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
@@ -500,18 +503,140 @@ function openQuoteDrawer(i) {
     </div>
     <div class="dr-section">
       <div class="dr-section-title">Details</div>
-      <div class="dr-row"><span class="dr-label">Status</span><span class="dr-value">${statusBadge(q.status)}</span></div>
       <div class="dr-row"><span class="dr-label">Date</span><span class="dr-value">${date}</span></div>
     </div>
-    ${q.remark ? `
-    <div class="dr-section">
-      <div class="dr-section-title">Remark</div>
-      <div class="dr-remark">${q.remark}</div>
-    </div>` : ''}
+
+    <!-- ── EDIT SECTION ── -->
+    <div class="dr-section" style="background:rgba(59,130,246,.04);border:1px solid rgba(59,130,246,.15);border-radius:10px;padding:16px;">
+      <div class="dr-section-title" style="margin-bottom:14px">Edit Quote</div>
+
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">Status</label>
+        <select id="dq-status" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;outline:none">
+          ${['draft','sent','accepted','rejected','invoiced'].map(s =>
+            `<option value="${s}" ${q.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`
+          ).join('')}
+        </select>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:5px">Remark / Notes</label>
+        <textarea id="dq-remark" rows="3" placeholder="Add notes about this quote…" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;outline:none;resize:vertical">${q.remark||''}</textarea>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="saveQuoteEdit()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .15s" onmouseover="this.style.background='var(--accent-hover)'" onmouseout="this.style.background='var(--accent)'">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          Save Changes
+        </button>
+        <button id="dq-zoho-btn" onclick="resendToZoho()" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.25);border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/></svg>
+          ${q.zohoEstimateId ? 'Re-send to Zoho Books' : 'Send to Zoho Books'}
+        </button>
+        ${q.zohoEstimateId ? `<a href="https://books.zoho.in/app#/estimates/${q.zohoEstimateId}" target="_blank" style="font-size:12px;color:var(--accent);text-align:center;text-decoration:none">View in Zoho Books ↗</a>` : ''}
+        <button onclick="deleteQuote('${q.quoteNumber}')" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Delete Quote
+        </button>
+      </div>
+      <div id="dq-msg" style="font-size:12px;margin-top:8px;display:none"></div>
+    </div>
   `;
 
   document.getElementById('drawer-backdrop').classList.add('open');
   document.getElementById('quote-drawer').classList.add('open');
+}
+
+async function saveQuoteEdit() {
+  if (!_drawerQuoteNum) return;
+  const status = document.getElementById('dq-status').value;
+  const remark = document.getElementById('dq-remark').value.trim();
+  const msg = document.getElementById('dq-msg');
+  msg.style.display = 'block'; msg.style.color = 'var(--muted)'; msg.textContent = 'Saving…';
+  try {
+    const r = await fetch(`${API}/api/quotes/${_drawerQuoteNum}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
+      body: JSON.stringify({ status, remark })
+    });
+    const res = await r.json();
+    if (res.success) {
+      msg.style.color = 'var(--green)'; msg.textContent = '✓ Saved';
+      // Update local data
+      const q = window._dashQuotes.find(x => x.quoteNumber === _drawerQuoteNum);
+      if (q) { q.status = status; q.remark = remark; }
+      // Refresh badge in table
+      const tbody = document.getElementById('quotes-tbody');
+      tbody.querySelectorAll('tr').forEach(tr => {
+        if (tr.querySelector('span')?.textContent === _drawerQuoteNum) {
+          const badgeCell = tr.cells[3];
+          if (badgeCell) badgeCell.innerHTML = statusBadge(status);
+        }
+      });
+    } else {
+      msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + (res.error || 'Error');
+    }
+  } catch(e) { msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message; }
+}
+
+async function resendToZoho() {
+  if (!_drawerQuoteNum) return;
+  const btn = document.getElementById('dq-zoho-btn');
+  const msg = document.getElementById('dq-msg');
+  btn.disabled = true; btn.textContent = '⏳ Sending to Zoho…';
+  msg.style.display = 'block'; msg.style.color = 'var(--muted)'; msg.textContent = 'Sending…';
+  try {
+    const r = await fetch(`${API}/api/zoho-books/create-estimate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Session-ID': getSession() },
+      body: JSON.stringify({ quoteId: _drawerQuoteNum })
+    });
+    const res = await r.json();
+    if (res.success) {
+      msg.style.color = 'var(--green)'; msg.textContent = '✓ Sent! Est. #' + res.estimateNumber;
+      btn.textContent = '✓ Sent to Zoho Books';
+      const q = window._dashQuotes.find(x => x.quoteNumber === _drawerQuoteNum);
+      if (q) { q.status = 'sent'; q.zohoEstimateId = res.estimateId; }
+    } else {
+      msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + (res.error || 'Zoho error');
+      btn.disabled = false; btn.textContent = 'Send to Zoho Books';
+    }
+  } catch(e) {
+    msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message;
+    btn.disabled = false; btn.textContent = 'Send to Zoho Books';
+  }
+}
+
+async function deleteQuote(qn) {
+  if (!confirm(`Delete quote ${qn}? This cannot be undone.`)) return;
+  const msg = document.getElementById('dq-msg');
+  msg.style.display = 'block'; msg.style.color = 'var(--muted)'; msg.textContent = 'Deleting…';
+  try {
+    const r = await fetch(`${API}/api/quotes/${qn}`, {
+      method: 'DELETE', headers: { 'X-Session-ID': getSession() }
+    });
+    const res = await r.json();
+    if (res.success) {
+      window._dashQuotes = window._dashQuotes.filter(q => q.quoteNumber !== qn);
+      closeQuoteDrawer();
+      // Re-render quotes tbody
+      const tbody = document.getElementById('quotes-tbody');
+      const rows = Array.from(tbody.querySelectorAll('tr')).filter(tr => {
+        const span = tr.querySelector('span[style*="monospace"]');
+        return !span || span.textContent !== qn;
+      });
+      if (!window._dashQuotes.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty">No legacy quotes</td></tr>';
+      } else {
+        tbody.querySelectorAll('tr').forEach(tr => {
+          const span = tr.querySelector('span[style*="monospace"]');
+          if (span && span.textContent === qn) tr.remove();
+        });
+      }
+    } else {
+      msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + (res.error || 'Error');
+    }
+  } catch(e) { msg.style.color = 'var(--red)'; msg.textContent = '✗ ' + e.message; }
 }
 
 function closeQuoteDrawer() {

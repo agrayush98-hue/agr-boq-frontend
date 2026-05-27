@@ -102,6 +102,24 @@
   .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99}
   .overlay.open{display:block}
 
+  /* action buttons */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;text-decoration:none}
+  .btn-primary{background:var(--accent);color:#fff} .btn-primary:hover{background:var(--accent-hover)}
+  .btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)} .btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)} .btn-danger:hover{background:rgba(239,68,68,.2)}
+  .btn-sm{padding:6px 12px;font-size:12px}
+  .btn-block{width:100%;justify-content:center}
+
+  /* edit form */
+  .edit-form{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:10px}
+  .field-group{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .field{display:flex;flex-direction:column;gap:4px}
+  .field label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .field input{background:var(--surface);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 10px;font-size:13px;outline:none;transition:border-color .15s}
+  .field input:focus{border-color:var(--accent)}
+  .field.full{grid-column:1/-1}
+  .edit-msg{font-size:12px;padding:6px 0;text-align:center}
+
   @media(max-width:768px){
     .sidebar{transform:translateX(-100%)}
     .sidebar.open{transform:translateX(0);box-shadow:4px 0 24px rgba(0,0,0,.5)}
@@ -350,7 +368,98 @@ function openDrawer(clientName) {
       <div class="detail-section-title">Notes</div>
       <div style="font-size:13px;color:var(--muted);line-height:1.6;white-space:pre-wrap">${c.notes}</div>
     </div>` : ''}
+
+    <!-- Create new quote -->
+    <div class="detail-section">
+      <a href="boq.html?client=${encodeURIComponent(c.name)}&contact=${encodeURIComponent(c.contact||'')}&email=${encodeURIComponent(c.email||'')}" class="btn btn-primary btn-block">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create New Quote for ${c.name}
+      </a>
+    </div>
+
+    <!-- Edit client -->
+    <div class="detail-section">
+      <button class="btn btn-ghost btn-block btn-sm" id="edit-toggle-btn" onclick="toggleEditForm(${c.id})">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Edit Client Details
+      </button>
+      <div id="edit-form-${c.id}" class="edit-form" style="display:none">
+        <div class="field-group">
+          <div class="field full">
+            <label>Full Name</label>
+            <input id="ef-name" value="${esc(c.name)}" placeholder="Client name">
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input id="ef-contact" value="${esc(c.contact||'')}" placeholder="+91…">
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input id="ef-email" type="email" value="${esc(c.email||'')}" placeholder="email@…">
+          </div>
+          <div class="field">
+            <label>GSTIN</label>
+            <input id="ef-gstin" value="${esc(c.gstin||'')}" placeholder="22AAAAA0000A1Z5" style="font-family:monospace;font-size:12px">
+          </div>
+          <div class="field">
+            <label>City</label>
+            <input id="ef-city" value="${esc(c.city||'')}" placeholder="City">
+          </div>
+          <div class="field">
+            <label>State</label>
+            <input id="ef-state" value="${esc(c.state||'')}" placeholder="State">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn btn-primary btn-sm" style="flex:1" onclick="saveClient(${c.id})">Save Changes</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleEditForm(${c.id})">Cancel</button>
+        </div>
+        <div class="edit-msg" id="edit-msg-${c.id}"></div>
+      </div>
+    </div>
   `;
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function toggleEditForm(id) {
+  const form = document.getElementById(`edit-form-${id}`);
+  const btn  = document.getElementById('edit-toggle-btn');
+  const open = form.style.display === 'none';
+  form.style.display = open ? '' : 'none';
+  if (btn) btn.style.display = open ? 'none' : '';
+}
+
+async function saveClient(id) {
+  const msg = document.getElementById(`edit-msg-${id}`);
+  msg.style.color = 'var(--muted)'; msg.textContent = 'Saving…';
+  const payload = {
+    name:    document.getElementById('ef-name')?.value.trim(),
+    contact: document.getElementById('ef-contact')?.value.trim(),
+    email:   document.getElementById('ef-email')?.value.trim(),
+    gstin:   document.getElementById('ef-gstin')?.value.trim(),
+    city:    document.getElementById('ef-city')?.value.trim(),
+    state:   document.getElementById('ef-state')?.value.trim(),
+  };
+  if (!payload.name) { msg.style.color='var(--red)'; msg.textContent='Name is required'; return; }
+  try {
+    const r = await fetch(`${API}/api/clients/${id}`, {
+      method:'PATCH',
+      headers:{'X-Session-ID':getSession(),'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error||'Save failed');
+    // Update local cache
+    const idx = allClients.findIndex(c=>c.id===id);
+    if (idx>=0) allClients[idx] = {...allClients[idx],...payload};
+    msg.style.color = 'var(--green)'; msg.textContent = '✓ Saved successfully';
+    // Refresh drawer title and cards
+    document.getElementById('drawer-title').textContent = payload.name;
+    filterClients();
+  } catch(e) {
+    msg.style.color = 'var(--red)'; msg.textContent = e.message;
+  }
 }
 
 function closeDrawer(e) { if (e.target===document.getElementById('drawer-bg')) closeDrawerDirect(); }
